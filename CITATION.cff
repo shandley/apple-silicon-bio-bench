@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Handley"
+    given-names: "Scott"
+    email: "shandley@wustl.edu"
+    affiliation: "Washington University School of Medicine"
+    orcid: "https://orcid.org/0000-0000-0000-0000"  # Update with actual ORCID
+title: "Apple Silicon Bio Bench: Systematic Performance Characterization of Sequence Operations"
+version: 0.1.0
+date-released: 2025-10-30
+url: "https://github.com/shandley/apple-silicon-bio-bench"
+repository-code: "https://github.com/shandley/apple-silicon-bio-bench"
+license: Apache-2.0
+keywords:
+  - bioinformatics
+  - apple-silicon
+  - performance
+  - benchmarking
+  - optimization
+  - sequence-analysis
+  - rust
+abstract: >
+  Apple Silicon Bio Bench (ASBB) is a scientific framework for systematically
+  exploring the performance landscape of bioinformatics sequence operations
+  across Apple Silicon hardware configurations. Through rigorous experimental
+  design and statistical analysis, ASBB derives optimization rules that can be
+  applied automatically to any sequence analysis tool. The framework includes
+  comprehensive benchmarking infrastructure, data generation tools, and
+  statistical analysis methods to characterize performance across 20+ primitive
+  operations, 5 orders of magnitude in data scale, and 8+ hardware features
+  including NEON SIMD, Metal GPU, asymmetric cores, unified memory, and
+  specialized accelerators.

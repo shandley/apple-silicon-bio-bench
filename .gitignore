@@ -1,0 +1,62 @@
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Generated datasets (large files)
+datasets/**/*.fasta
+datasets/**/*.fastq
+datasets/**/*.fa.gz
+datasets/**/*.fq.gz
+
+# Results (use Git LFS for Parquet files)
+# results/**/*.parquet  # Uncomment if not using Git LFS
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.env
+.venv
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# R
+.Rhistory
+.RData
+.Rproj.user
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Benchmarking
+/benches/target/
+criterion/
+
+# Documentation build
+/docs/_build/
+/docs/site/

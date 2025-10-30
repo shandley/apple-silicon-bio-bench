@@ -1,0 +1,12 @@
+[package]
+name = "asbb-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "ASBB cli component"
+
+[dependencies]
+asbb-core = { path = "../asbb-core" }
+anyhow.workspace = true
