@@ -5,6 +5,40 @@
 
 ---
 
+## 🚨 Critical Development Philosophy 🚨
+
+### Think Apple Silicon First, Not x86 First
+
+**Key lesson from BioMetal**: We repeatedly fell back into traditional x86-era optimization patterns. This was limiting.
+
+**For ASBB implementation**:
+- ✓ **Learn from** bioinformatics literature (algorithms, domain knowledge)
+- ✗ **Don't blindly copy** optimization strategies from x86 tools
+- ✓ **Explore novel** approaches unique to Apple Silicon
+- ✓ **Question assumptions** about what's fast/slow
+
+**For every operation we implement**:
+1. Implement traditional/naive version (baseline)
+2. Implement NEON-native version (designed for SIMD, not ported)
+3. Implement Metal-native version (leverage unified memory, tile memory)
+4. Explore heterogeneous version (P-cores + E-cores + GCD)
+5. Explore novel approaches (Neural Engine, AMX, hardware compression)
+6. **Measure everything, document what works AND what doesn't**
+
+**Apple Silicon unique capabilities** (did not exist pre-2020):
+- Unified memory (zero-copy CPU↔GPU)
+- NEON as first-class citizen (not afterthought)
+- Neural Engine (ML inference)
+- Heterogeneous cores (P-cores + E-cores)
+- AMX matrix engine
+- Hardware compression
+- Metal with tile memory
+- GCD + QoS system integration
+
+**See CLAUDE.md "Critical Philosophy" section for detailed guidance.**
+
+---
+
 ## What We've Accomplished
 
 ### Repository Setup ✅

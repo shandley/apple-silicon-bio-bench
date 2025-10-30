@@ -16,6 +16,63 @@ This document describes the experimental methodology for systematically characte
 
 ---
 
+## Guiding Philosophy: Novel Approaches for Novel Hardware
+
+### Breaking Free from x86 Assumptions
+
+**Critical lesson from BioMetal**: Traditional bioinformatics optimization patterns are not optimal for Apple Silicon.
+
+**Why this matters for ASBB**:
+- Most reference implementations (BLAST, BWA, Bowtie, etc.) were designed for x86 architectures
+- Traditional approaches assume: discrete GPUs, separate memory spaces, homogeneous cores, SSE/AVX as afterthought
+- **Apple Silicon is fundamentally different**: unified memory, heterogeneous cores, NEON-first, Neural Engine, AMX
+- **We must actively resist** copying x86 optimization strategies
+
+### Experimental Approach: Traditional + Novel
+
+For each operation, we test **both**:
+
+**1. Traditional implementations** (baseline):
+- Standard algorithms from literature
+- Naive ports from x86 tools
+- "Obvious" optimizations
+
+**2. Apple Silicon-native implementations** (exploratory):
+- NEON-first designs (not SIMD ports)
+- Unified memory exploitation (zero-copy CPU/GPU)
+- Heterogeneous compute (P-cores + E-cores + GCD)
+- Neural Engine experiments (ML-based approaches)
+- AMX exploration (matrix reformulations)
+- Metal-native designs (tile memory, threadgroups)
+- Hardware compression integration
+
+### Novel Opportunities to Explore
+
+**These capabilities did not exist pre-2020**:
+
+| Feature | Traditional Assumption | Apple Silicon Reality | Experimental Questions |
+|---------|------------------------|------------------------|------------------------|
+| **Unified Memory** | Copy to GPU (100ms overhead) | Zero-copy CPU↔GPU | Can CPU+GPU collaborate on same buffer? |
+| **NEON SIMD** | SSE/AVX afterthought, library-only | First-class, always available | Can we design NEON-native algorithms? |
+| **Neural Engine** | No equivalent | 16-38 TOPS ML inference | Can we frame sequence ops as ML tasks? |
+| **P-cores + E-cores** | Homogeneous cores | Heterogeneous + QoS | Can we pipeline I/O (E) + compute (P)? |
+| **AMX** | CPU or discrete GPU | Integrated 512-bit matrix ops | Can we reformulate as matrix operations? |
+| **Metal** | CUDA/OpenCL memory model | Tile memory, unified memory | Can we exploit Metal's memory hierarchy? |
+| **HW Compression** | Software zlib (slow) | Hardware-accelerated | Can we compress intermediate results? |
+| **GCD + QoS** | Manual thread management | System-level optimization | Can OS optimize thermal/power for us? |
+
+### Integration into Operation Categories
+
+Each operation category (below) includes:
+- **Traditional approach**: Standard implementation
+- **Expected hardware**: Based on x86 wisdom
+- **Novel explorations**: Apple Silicon-specific experiments
+- **Open questions**: What to test
+
+**Goal**: Don't just measure traditional approaches. Discover what becomes possible on Apple Silicon.
+
+---
+
 ## The Dimensional Space
 
 ### 1. Data Characteristics (Input Space)
@@ -63,10 +120,27 @@ This document describes the experimental methodology for systematically characte
 - Base masking (replace with N)
 - Quality score aggregation (mean, min, max)
 
-**Expected hardware**:
-- ✓ NEON SIMD (high speedup expected)
+**Traditional approach**:
+- Scalar loops processing one base at a time
+- Optional SIMD via auto-vectorization or intrinsics
+- Standard parallel (OpenMP, pthreads)
+
+**Expected hardware** (x86 wisdom):
+- ✓ NEON SIMD (high speedup expected, 98× validated for reverse complement)
 - ✓ Rayon parallel (scales linearly)
 - ✗ GPU (overhead too high for small operations)
+
+**Novel explorations** (Apple Silicon-specific):
+- **NEON-native designs**: Algorithms designed around 16-byte lanes (64 bases in 2-bit encoding)
+- **NEON lookup tables**: Replace branching with table lookups for translation
+- **2-bit encoding**: 4× memory reduction, better cache locality, enables 64-base SIMD
+- **Unified memory + GPU**: Even small batches (1K sequences) if zero-copy eliminates overhead
+- **P-core + E-core**: Quality aggregation on E-cores while P-cores process next chunk
+
+**Open questions**:
+- Does 2-bit encoding always win, or only at large scale?
+- Can GPU compete with NEON if unified memory removes overhead?
+- Can we design operations that compose NEON + Metal (CPU transforms, GPU reduces)?
 
 #### Category 2: Filtering Operations
 **Characteristics**: Data-dependent, may be sequential
@@ -77,10 +151,26 @@ This document describes the experimental methodology for systematically characte
 - Complexity filtering (low-complexity detection)
 - N-content filtering (max ambiguous bases)
 
-**Expected hardware**:
-- ✓ NEON SIMD (quality score processing)
+**Traditional approach**:
+- Sequential read-by-read processing
+- Early termination for failed filters
+- Single-threaded or coarse-grained parallel
+
+**Expected hardware** (x86 wisdom):
+- ✓ NEON SIMD (quality score processing, 16 scores in parallel)
 - ✓ Rayon parallel (independent sequences)
 - ? GPU (depends on batch size)
+
+**Novel explorations** (Apple Silicon-specific):
+- **NEON predication**: Compare 16 quality scores simultaneously, mask-based filtering
+- **Neural Engine classification**: Train model to predict pass/fail from sequence features
+- **Pipelined I/O + filtering**: E-cores parse, P-cores filter, E-cores write (3-stage pipeline)
+- **Complexity detection via AMX**: Represent sequence as matrix, detect low-rank structure
+
+**Open questions**:
+- Can Neural Engine beat rule-based filtering (lower latency, higher accuracy)?
+- Does pipelining help or hurt (overhead vs. parallelism)?
+- Can we combine filters (quality + length + complexity) into single NEON pass?
 
 #### Category 3: Search Operations
 **Characteristics**: Memory-intensive, parallel
@@ -93,10 +183,28 @@ This document describes the experimental methodology for systematically characte
 - Motif finding
 - Adapter detection
 
-**Expected hardware**:
+**Traditional approach**:
+- Hash tables for k-mer storage
+- Sequential counting
+- Exhaustive search for fuzzy matching
+
+**Expected hardware** (x86 wisdom):
 - ? NEON SIMD (hashing may not vectorize well)
 - ✓ Rayon parallel (independent sequences)
 - ✓ GPU (for large batches, fuzzy matching validated 6×)
+
+**Novel explorations** (Apple Silicon-specific):
+- **Metal tile memory**: Perfect cache locality for k-mer counting (k-mer hash → tile memory)
+- **NEON parallel hashing**: Even small speedup (2-3×) is valuable at scale
+- **Neural Engine k-mer classification**: Train model to predict k-mer matches (adapter detection as classification)
+- **Unified memory streaming**: CPU extracts k-mers, GPU matches simultaneously (no copy)
+- **AMX for fuzzy matching**: Reformulate Hamming distance as matrix operations
+
+**Open questions**:
+- Can Metal tile memory beat CPU cache for k-mer counting?
+- Is Neural Engine faster than exhaustive search for adapter detection?
+- Does unified memory enable new streaming patterns (CPU+GPU concurrent)?
+- Can AMX accelerate fuzzy matching (matrix formulation)?
 
 #### Category 4: Pairwise Operations
 **Characteristics**: O(n²) or O(n log n), may not parallelize well
@@ -136,12 +244,30 @@ This document describes the experimental methodology for systematically characte
 - Format conversion (FASTA ↔ FASTQ)
 - Writing output
 
-**Expected hardware**:
+**Traditional approach**:
+- Sequential I/O (read, decompress, parse)
+- Software decompression (zlib, libdeflate)
+- Blocking I/O
+
+**Expected hardware** (x86 wisdom):
 - ✗ NEON SIMD (not compute-bound)
 - ? Rayon parallel (I/O may serialize)
 - ✗ GPU (irrelevant for I/O)
 - ✓ E-cores + GCD (background I/O)
 - ✓ Hardware compression (AppleArchive/zstd acceleration)
+
+**Novel explorations** (Apple Silicon-specific):
+- **AppleArchive hardware acceleration**: 2-5× faster decompression vs. software zlib
+- **E-core I/O + P-core processing**: Complete pipeline on E-cores (parse + write), P-cores compute
+- **GCD dispatch groups**: Automatic load balancing for parallel decompression
+- **Compressed intermediate buffers**: Hardware compression for in-memory data (reduce memory bandwidth)
+- **QoS-based prioritization**: Background QoS for I/O, user-initiated for processing
+
+**Open questions**:
+- How much faster is hardware decompression vs. software?
+- Can we stream compressed data directly to GPU (decompress on GPU)?
+- Does E-core I/O + P-core compute pipeline improve throughput?
+- Can hardware compression reduce memory bandwidth contention?
 
 ### 3. Hardware Configurations (Optimization Space)
 
