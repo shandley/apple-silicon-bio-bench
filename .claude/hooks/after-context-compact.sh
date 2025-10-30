@@ -26,22 +26,26 @@ Traditional bioinformatics tools were designed for x86 (pre-2020)
 → We must EXPLORE novel approaches unique to Apple Silicon
 
 APPLE SILICON UNIQUE CAPABILITIES (did not exist pre-2020):
-• Unified Memory - Zero-copy CPU↔GPU
+• Unified Memory - Zero-copy CPU↔GPU (153 GB/s on M5)
 • NEON - First-class SIMD (not afterthought)
 • Neural Engine - ML inference (16-38 TOPS)
+• M5 NEW: GPU Neural Accelerators - 4× AI performance, ML on GPU
 • Heterogeneous - P-cores + E-cores + QoS
 • AMX - 512-bit matrix operations
 • Metal - Tile memory, threadgroups
 • Hardware Compression - AppleArchive acceleration
 • GCD + QoS - System-level optimization
+• M5 NEW: 2× faster SSD performance
 
 FOR EVERY OPERATION - TEST ALL:
 1. Traditional/naive (baseline)
 2. NEON-native (designed for SIMD)
 3. Metal-native (unified memory, tile memory)
 4. Heterogeneous (P/E-cores, GCD, QoS)
-5. Novel (Neural Engine, AMX, hardware compression)
-6. Document ALL results (failures are valuable!)
+5. Neural Engine (ML-based approach)
+6. M5: GPU Neural Accelerators (ML on GPU, 4× AI perf)
+7. Hybrid (compute + ML, compositions)
+8. Document ALL results (failures are valuable!)
 
 KEY DOCUMENTS TO RE-READ:
 📖 CLAUDE.md "Critical Philosophy: Think Apple Silicon First" (lines 162-318)

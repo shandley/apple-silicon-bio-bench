@@ -24,7 +24,8 @@ FOR EVERY OPERATION IMPLEMENTATION:
 3. ✓ Metal-native (tile memory, unified memory)
 4. ✓ Heterogeneous (P-cores + E-cores + GCD)
 5. ✓ Novel (Neural Engine, AMX, hardware compression)
-6. ✓ Measure & document ALL results (including failures)
+6. ✓ M5: GPU Neural Accelerators (4× AI performance, ML on GPU)
+7. ✓ Measure & document ALL results (including failures)
 
 THIS IS SCIENCE, NOT ENGINEERING:
 Goal = Universal understanding, not one-off solutions

@@ -201,15 +201,20 @@ These capabilities **did not exist** in traditional bioinformatics tool developm
 - Exploit 128-bit operations for DNA (16 bytes = 64 bases in 2-bit encoding)
 - Could we design new sequence representations optimized for NEON lanes?
 
-#### 3. Neural Engine
+#### 3. Neural Engine & GPU Neural Accelerators
 **Traditional**: No equivalent hardware in x86 or traditional HPC
-**Apple Silicon**: 16-core Neural Engine (11 TOPS on M1, 38 TOPS on M4)
+**Apple Silicon**:
+- **Neural Engine**: 16-core (11 TOPS on M1, 38 TOPS on M4)
+- **M5 NEW**: Neural Accelerators integrated into each GPU core (4× AI performance vs M4)
 
 **Novel opportunities**:
 - Sequence classification (contamination, quality prediction, taxonomy)
 - Quality score prediction from sequence context
 - Adapter detection as image recognition problem (visualize k-mer matrix)
 - Could we train Core ML models for fuzzy matching instead of exhaustive search?
+- **M5**: GPU Neural Accelerators blur line between compute shaders and ML inference
+- **M5**: Frame operations as ML problems to leverage GPU Neural Accelerators (4× faster AI workloads)
+- **M5**: Compare Neural Engine vs GPU Neural Accelerators for sequence operations
 
 #### 4. Heterogeneous Compute (P-cores + E-cores)
 **Traditional**: Homogeneous cores, scale linearly
@@ -231,15 +236,19 @@ These capabilities **did not exist** in traditional bioinformatics tool developm
 - Could we reformulate k-mer counting as matrix operations?
 - Position weight matrix (PWM) scoring with AMX
 
-#### 6. Metal Compute Shaders
+#### 6. Metal Compute Shaders & GPU Neural Accelerators
 **Traditional**: CUDA/OpenCL with separate memory spaces
 **Apple Silicon**: Metal with unified memory, tile memory, threadgroup shared memory
+- **M5 NEW**: Neural Accelerators in each GPU core (tensor core-like functionality)
 
 **Novel opportunities**:
 - Use tile memory for k-mer counting (perfect cache locality)
 - Threadgroup barriers for collaborative filtering
 - Could we design operations specifically for Metal's memory hierarchy?
 - Metal Performance Shaders (MPS) for standard operations
+- **M5**: GPU Neural Accelerators enable hybrid compute+ML shaders
+- **M5**: Frame sequence operations as ML problems to leverage 4× AI performance
+- **M5**: Test GPU Neural Accelerators vs Neural Engine for sequence classification
 
 #### 7. Hardware Compression/Decompression
 **Traditional**: Software zlib/gzip (slow, CPU-intensive)
@@ -356,14 +365,25 @@ Not all hardware combinations interact meaningfully:
 **Most of the space is boring** (follows main effects)
 **Interesting regions are sparse** (can be found with sampling)
 
-### 4. Apple Silicon Is Consistent
+### 4. Apple Silicon Evolution & Generalization
 
-M1, M2, M3, M4 have similar performance characteristics:
-- NEON speedups transfer across generations
+**M1 → M4 (2020-2024)**:
+- Similar performance characteristics across generations
+- NEON speedups transfer consistently
 - GPU cliffs at similar thresholds
-- Unified memory works the same way
+- Unified memory architecture consistent
 
-**Rules likely generalize across generations** (validate with spot checks)
+**M5 (October 2025) - Significant Evolution**:
+- **Neural Accelerators in GPU cores**: 4× AI performance vs M4 (NEW capability)
+- **Memory bandwidth**: 153 GB/s (vs 120 GB/s M4, 27.5% increase)
+- **SSD performance**: 2× faster storage
+- **Process**: Third-gen 3nm (N3P)
+
+**Implications for ASBB**:
+- **Rules likely generalize** across M1-M4 (validate with spot checks)
+- **M5 requires new experiments**: GPU Neural Accelerators are a paradigm shift
+- **Forward compatibility**: Design experiments to detect architectural changes
+- **Test on multiple generations**: M1/M2/M3/M4 (consistent), M5 (validate new capabilities)
 
 ---
 
@@ -660,6 +680,28 @@ These findings from BioMetal will be systematically validated and formalized:
 - Hypothesis: 2-5× I/O speedup
 - Expected: High impact for streaming
 - Experiments: Test with various compression formats
+
+### M5-Specific Explorations (October 2025+)
+
+**GPU Neural Accelerators** (NEW in M5):
+- Hypothesis: 4× AI performance enables ML-based sequence operations on GPU
+- Expected: GPU now viable for classification, not just compute shaders
+- Experiments:
+  - Compare Neural Engine vs GPU Neural Accelerators for sequence classification
+  - Frame operations as ML problems (adapter detection, contamination, quality prediction)
+  - Hybrid Metal shaders (compute + ML in same kernel)
+  - Measure actual 4× improvement on sequence workloads
+- Question: Do GPU Neural Accelerators change the "50K batch size cliff" threshold?
+
+**Increased Memory Bandwidth** (153 GB/s vs 120 GB/s):
+- Hypothesis: 27.5% bandwidth increase shifts memory-bound operation thresholds
+- Expected: K-mer counting, search operations benefit more
+- Experiments: Re-validate M4 findings on M5, measure actual bandwidth utilization
+
+**2× Faster SSD**:
+- Hypothesis: I/O operations become less of a bottleneck
+- Expected: Streaming workloads benefit, compressed streaming even faster
+- Experiments: Measure actual read/write throughput, compare to M4
 
 ---
 

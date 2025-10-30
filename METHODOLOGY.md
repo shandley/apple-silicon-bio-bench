@@ -206,6 +206,12 @@ Each operation category (below) includes:
 - Does unified memory enable new streaming patterns (CPU+GPU concurrent)?
 - Can AMX accelerate fuzzy matching (matrix formulation)?
 
+**M5-specific explorations**:
+- GPU Neural Accelerators for k-mer classification (match/no-match as ML problem)
+- 4× AI performance: Can we replace exhaustive search with ML inference?
+- Hybrid Metal shaders: NEON-style compute + Neural Accelerator inference
+- Does 153 GB/s bandwidth change k-mer counting performance?
+
 #### Category 4: Pairwise Operations
 **Characteristics**: O(n²) or O(n log n), may not parallelize well
 
@@ -285,12 +291,18 @@ Each operation category (below) includes:
 #### GPU Features (Metal)
 - **Batch processing**: Single dispatch per file
 - **Batch size threshold**: Test 100, 1K, 10K, 50K, 100K, 1M
-- **Unified memory bandwidth**: Zero-copy CPU↔GPU
+- **Unified memory bandwidth**: Zero-copy CPU↔GPU (120 GB/s M4, 153 GB/s M5)
+- **M5 NEW - Neural Accelerators**: Tensor core-like functionality in each GPU core
+  - 4× peak AI compute performance vs M4
+  - Enables ML-based sequence operations on GPU
+  - Hybrid compute+ML shaders possible
 
 #### Specialized Hardware
 - **AMX matrix engine**: 512-bit matrix operations
-- **Neural Engine**: ML inference (Core ML models)
+- **Neural Engine**: ML inference (Core ML models, 16-core)
+- **GPU Neural Accelerators (M5)**: ML inference in GPU cores (4× AI performance vs M4)
 - **Hardware compression**: AppleArchive, zstd acceleration
+- **Hardware I/O (M5)**: 2× faster SSD performance
 
 #### System Features
 - **GCD dispatch**: Quality of Service based threading
@@ -404,6 +416,27 @@ Tests: 2^10 = 1,024
 - Harder to explain in publication
 
 **When to use**: If hierarchical approach misses critical interactions.
+
+### Approach 3: M5-Specific Extensions (Optional)
+
+**Rationale**: M5 introduces GPU Neural Accelerators, a significant architectural change requiring targeted experiments.
+
+**Additional experiments** (if M5 hardware available):
+```
+New configurations: GPU Neural Accelerators (on/off), Neural Engine vs GPU comparison
+Operations: ML-amenable tasks (classification, prediction, detection)
+Test: ~200 additional experiments
+
+Total: 200 M5-specific tests
+```
+
+**Key questions**:
+- Do GPU Neural Accelerators change GPU batch size threshold (50K)?
+- Neural Engine vs GPU Neural Accelerators: which is faster for sequence classification?
+- Can we write hybrid Metal shaders (compute + ML)?
+- Does 27.5% memory bandwidth increase affect memory-bound operations?
+
+**Timeline**: Month 4 (if M5 hardware available)
 
 ---
 
