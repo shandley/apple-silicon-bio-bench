@@ -1,0 +1,14 @@
+model	screen_size	form_factor	chips_available	memory_min_gb	memory_max_gb	storage_min_gb	storage_max_gb	ports	release_date	current_availability	notes
+MacBook Air	13"	Laptop	M1, M2, M3	8	24	256	2048	2x Thunderbolt/USB4, MagSafe 3, 3.5mm	2020-11 (M1), 2022-07 (M2), 2024-03 (M3)	Current	Fanless design
+MacBook Air	15"	Laptop	M2, M3	8	24	256	2048	2x Thunderbolt/USB4, MagSafe 3, 3.5mm	2023-06 (M2), 2024-03 (M3)	Current	Fanless design, larger display
+MacBook Pro	13"	Laptop	M1, M2	8	24	256	2048	2x Thunderbolt/USB4	2020-11 (M1), 2022-06 (M2)	Discontinued	Touch Bar (M1 only)
+MacBook Pro	14"	Laptop	M1 Pro, M1 Max, M2 Pro, M2 Max, M3, M3 Pro, M3 Max, M4, M4 Pro, M4 Max, M5	16	128	512	8192	3x Thunderbolt 4 (M3/M4/M5), 3x Thunderbolt 5 (M4 Pro/Max), HDMI, SDXC, MagSafe 3, 3.5mm	2021-10 (M1 Pro/Max), 2023-01 (M2 Pro/Max), 2023-10 (M3 series), 2024-11 (M4 series), 2025-10 (M5)	Current	Liquid Retina XDR display
+MacBook Pro	16"	Laptop	M1 Pro, M1 Max, M2 Pro, M2 Max, M3 Pro, M3 Max, M4 Pro, M4 Max	16	128	512	8192	3x Thunderbolt 4/5, HDMI, SDXC, MagSafe 3, 3.5mm	2021-10 (M1 Pro/Max), 2023-01 (M2 Pro/Max), 2023-10 (M3 series), 2024-11 (M4 series)	Current	Liquid Retina XDR display
+Mac mini	N/A	Desktop	M1, M2, M2 Pro, M4, M4 Pro	8	64	256	8192	2-4x Thunderbolt 4/5, 2x USB-A (M1/M2), HDMI, Gigabit Ethernet	2020-11 (M1), 2023-01 (M2/M2 Pro), 2024-11 (M4/M4 Pro)	Current	Compact desktop
+Mac Studio	N/A	Desktop	M1 Max, M1 Ultra, M2 Max, M2 Ultra, M3 Ultra, M4 Max	32	256	512	8192	4-6x Thunderbolt 4, 2x USB-A, 10Gb Ethernet, HDMI, 3.5mm	2022-03 (M1 Max/Ultra), 2023-06 (M2 Max/Ultra), 2024-06 (M3 Ultra), 2024-11 (M4 Max)	Current	Workstation-class desktop
+Mac Pro	N/A	Desktop	M2 Ultra	64	192	1024	8192	8x Thunderbolt 4, 2x USB-A, 2x 10Gb Ethernet, HDMI, 3.5mm, PCIe slots	2023-06	Current	PCIe expansion, rack-mountable
+iMac	24"	All-in-One	M1, M3, M4	8	32	256	2048	2-4x Thunderbolt/USB4, Gigabit Ethernet (optional)	2021-04 (M1), 2023-11 (M3), 2024-11 (M4)	Current	Color options, 4.5K Retina display
+iPad Pro	11"	Tablet	M1, M2, M4, M5	8	16	128	2048	1x Thunderbolt/USB4	2021-05 (M1), 2022-10 (M2), 2024-05 (M4), 2025-10 (M5)	Current	Tandem OLED (M4/M5)
+iPad Pro	13"	Tablet	M1, M2, M4, M5	8	16	128	2048	1x Thunderbolt/USB4	2021-05 (M1), 2022-10 (M2), 2024-05 (M4), 2025-10 (M5)	Current	Tandem OLED (M4/M5)
+iPad Air	11"	Tablet	M2	8	16	128	1024	1x USB-C	2024-05	Current
+iPad Air	13"	Tablet	M2	8	16	128	1024	1x USB-C	2024-05	Current	First 13" iPad Air

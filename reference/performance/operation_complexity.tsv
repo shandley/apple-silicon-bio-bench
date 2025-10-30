@@ -1,0 +1,26 @@
+operation	category	time_complexity	space_complexity	vectorizable	parallelizable	memory_bound	compute_bound	typical_bottleneck	notes
+base_counting	Element-wise	O(n)	O(1)	Yes (high)	Yes (embarrassing)	No	Yes	Memory bandwidth	Highly vectorizable with SIMD
+gc_content	Element-wise	O(n)	O(1)	Yes (high)	Yes (embarrassing)	No	Yes	Memory bandwidth	Count + divide
+reverse_complement	Element-wise	O(n)	O(n)	Yes (high)	Yes (embarrassing)	No	Yes	Memory bandwidth	Lookup table friendly
+dna_to_protein	Element-wise	O(n)	O(n/3)	Yes (medium)	Yes (embarrassing)	No	Yes	Lookup complexity	Codon table lookup
+quality_mean	Element-wise	O(n)	O(1)	Yes (high)	Yes (embarrassing)	No	Yes	Memory bandwidth	Sum + count + divide
+quality_filter	Filter	O(n)	O(n)	Yes (medium)	Yes (per-sequence)	No	Partial	Branch prediction	Early termination helps
+length_filter	Filter	O(1) per seq	O(n)	No	Yes (per-sequence)	No	No	Trivial	Metadata check only
+complexity_filter	Filter	O(n)	O(1)	Partial	Yes (per-sequence)	No	Yes	Algorithm dependent	Depends on complexity metric
+kmer_extraction	Search	O(n*k)	O(n*k)	Partial	Yes (per-sequence)	Yes	No	Memory allocation	k = k-mer size, can use rolling hash
+kmer_counting	Search	O(n*k)	O(4^k)	No	Yes (with locking)	Yes	No	Hash table contention	Synchronization overhead
+kmer_exact_match	Search	O(n*k)	O(4^k)	No	Yes (per-sequence)	Yes	No	Hash table lookup	Index size matters
+kmer_fuzzy_match	Search	O(n*k*m)	O(4^k)	Partial	Yes (per-sequence)	Yes	Yes	Combinatorial explosion	m = max mismatches, GPU benefits at scale
+hamming_distance	Pairwise	O(n)	O(1)	Yes (high)	Yes (embarrassing)	No	Yes	Memory bandwidth	XOR + popcount
+edit_distance	Pairwise	O(n*m)	O(n*m)	No	Yes (per-pair)	Depends	Yes	DP matrix operations	Dynamic programming, can use banded
+sequence_deduplication	Pairwise	O(n^2) or O(n log n)	O(n)	No	Partial	Yes	Depends	Hash/sort algorithm	Exact: hash-based O(n), fuzzy: O(n^2)
+clustering	Pairwise	O(n^2)	O(n^2)	No	Partial	Yes	Yes	Distance matrix	Algorithm dependent (hierarchical, k-means, etc.)
+statistics_mean	Aggregation	O(n)	O(1)	Yes (high)	Yes (reduction)	No	Yes	Memory bandwidth	Parallel reduction
+histogram	Aggregation	O(n)	O(bins)	Partial	Yes (with atomics)	No	Partial	Atomic operations	Synchronization for updates
+minhash_sketch	Aggregation	O(n*k*h)	O(h)	Partial	Yes (per-sequence)	No	Yes	Hash computations	h = number of hash functions
+random_sampling	Aggregation	O(n)	O(sample_size)	No	Partial	No	No	Random number generation	Reservoir sampling for streaming
+fasta_parsing	I/O	O(n)	O(record_size)	No	No (sequential)	Yes	No	Disk/network I/O	Single-threaded parsing
+fastq_parsing	I/O	O(n)	O(record_size)	No	No (sequential)	Yes	No	Disk/network I/O	4-line record format
+gzip_decompression	I/O	O(n)	O(window)	No	Partial (blocks)	Yes	Yes	CPU (software) or HW (M5)	Hardware acceleration on M5 (2x faster)
+format_conversion	I/O	O(n)	O(record_size)	No	Yes (per-record)	Yes	No	I/O bandwidth	FASTA ↔ FASTQ
+writing_output	I/O	O(n)	O(buffer)	No	Partial	Yes	No	Disk I/O	Buffering helps

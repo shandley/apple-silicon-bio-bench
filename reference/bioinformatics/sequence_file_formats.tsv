@@ -1,0 +1,14 @@
+format	extension	structure	quality_scores	compression_common	line_length	indexed	streamable	description	use_cases	typical_size_range
+FASTA	.fa, .fasta, .fna	>header\nsequence	No	gzip, bzip2	60-80 chars (flexible)	.fai (samtools)	Yes	Simple sequence format	Reference genomes, gene sequences, protein sequences	1KB - 10GB
+FASTQ	.fq, .fastq	@header\nsequence\n+\nquality	Yes (Phred+33)	gzip, bzip2	No wrapping (single line)	No (unless BAM)	Yes	Sequencing reads with quality	Raw sequencing data, read filtering	100MB - 500GB
+FASTA (wrapped)	.fa, .fasta	>header\nseq (wrapped)	No	gzip	60-80 chars	.fai	Yes	Wrapped sequence lines	Reference genomes (traditional format)	1KB - 10GB
+FASTQ (4-line)	.fq, .fastq	@header\nseq\n+\nqual (strict)	Yes	gzip	No wrapping	No	Yes	Strict 4-line record format	Modern sequencing platforms	100MB - 500GB
+SAM	.sam	Header + alignment lines	Yes (QUAL field)	gzip (rare)	Tab-delimited	No	Yes	Sequence Alignment/Map format	Aligned reads (human-readable)	1GB - 100GB
+BAM	.bam	Binary SAM	Yes	BGZF (built-in)	Binary	.bai	Yes (with index)	Binary SAM format	Aligned reads (compressed, efficient)	500MB - 50GB
+CRAM	.cram	Reference-based compressed	Yes	Built-in (reference)	Binary	.crai	Yes (with index)	Highly compressed alignment	Long-term storage, archival	100MB - 10GB (highly compressed)
+GFF3	.gff, .gff3	Tab-delimited annotations	No	gzip	Tab-delimited	.tbi (tabix)	Yes	Gene annotations	Genome annotations, feature tracks	1MB - 1GB
+GTF	.gtf	Tab-delimited (gene transfer)	No	gzip	Tab-delimited	.tbi	Yes	Gene transfer format	Transcript annotations	1MB - 500MB
+BED	.bed	Tab-delimited intervals	No	gzip	Tab-delimited	.tbi	Yes	Browser extensible data	Genomic intervals, peaks, features	1KB - 100MB
+VCF	.vcf	Header + variant lines	Yes (QUAL column)	gzip, bgzip	Tab-delimited	.tbi (tabix)	Yes	Variant call format	SNPs, indels, structural variants	10MB - 10GB
+BCF	.bcf	Binary VCF	Yes	Built-in	Binary	.csi	Yes (with index)	Binary variant format	Efficient variant storage	5MB - 5GB
+FASTQ.GZ	.fq.gz, .fastq.gz	FASTQ + gzip	Yes	gzip (applied)	Compressed	No	Yes (with gunzip)	Compressed FASTQ	Standard distribution format	50MB - 200GB

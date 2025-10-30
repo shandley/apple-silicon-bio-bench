@@ -1,0 +1,17 @@
+chip	variant	release_date	process_node	cpu_cores_total	cpu_p_cores	cpu_e_cores	gpu_cores_max	neural_engine_cores	neural_engine_tops	memory_max_gb	memory_bandwidth_gbps	transistors_billion	special_features	notes
+M1	Base	2020-11	5nm	8	4	4	8	16	11	16	68.25	16	First Apple Silicon for Mac	Unified memory architecture
+M1	Pro	2021-10	5nm	10	8	2	16	16	11	32	200	33.7	ProRes accelerators	Media engine
+M1	Max	2021-10	5nm	10	8	2	32	16	11	64	400	57	ProRes accelerators, 2x media engines	Double memory bandwidth vs Pro
+M1	Ultra	2022-03	5nm	20	16	4	64	32	22	128	800	114	UltraFusion interconnect, 4x media engines	Two M1 Max dies connected
+M2	Base	2022-06	5nm enhanced	8	4	4	10	16	15.8	24	100	20	50% more memory bandwidth than M1	Enhanced 5nm process
+M2	Pro	2023-01	5nm enhanced	12	8	4	19	16	15.8	32	200	40	ProRes accelerators
+M2	Max	2023-01	5nm enhanced	12	8	4	38	16	15.8	96	400	67	ProRes accelerators, 2x media engines	Supports up to 96GB RAM
+M2	Ultra	2023-06	5nm enhanced	24	16	8	76	32	31.6	192	800	134	UltraFusion interconnect, 4x media engines	Two M2 Max dies connected
+M3	Base	2023-10	3nm (N3B)	8	4	4	10	16	18	24	100	25	Dynamic Caching, Hardware ray tracing, Mesh shading	First 3nm chip
+M3	Pro	2023-10	3nm (N3B)	12	6	6	18	16	18	36	150	37	Hardware ray tracing, Dynamic Caching
+M3	Max	2023-10	3nm (N3B)	16	12	4	40	16	18	128	400	92	Hardware ray tracing, Dynamic Caching, 2x media engines
+M3	Ultra	2024-06	3nm (N3B)	32	24	8	80	32	36	256	800	184	UltraFusion interconnect, Hardware ray tracing, 4x media engines	Two M3 Max dies connected
+M4	Base	2024-05	3nm (N3E)	10	4	6	10	16	38	32	120	28	Hardware ray tracing, Dynamic Caching, Display engine	Second-gen 3nm process
+M4	Pro	2024-11	3nm (N3E)	14	10	4	20	16	38	64	273	48	Thunderbolt 5, Hardware ray tracing
+M4	Max	2024-11	3nm (N3E)	16	12	4	40	16	38	128	546	105	Thunderbolt 5, Hardware ray tracing, 2x media engines
+M5	Base	2025-10	3nm (N3P)	10	4	6	10	16	~50	32	153.6	30	GPU Neural Accelerators, 3rd-gen ray tracing, 2x faster SSD	Third-gen 3nm, Neural Accelerators in GPU cores (4x AI performance)

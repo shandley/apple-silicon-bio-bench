@@ -1,0 +1,5 @@
+encoding	offset	ascii_range_start	ascii_range_end	quality_range_min	quality_range_max	probability_error_min	probability_error_max	description	platforms	notes
+Phred+33	33	! (33)	~ (126)	0	93	1.0 (Q0)	~0 (Q93)	Sanger/Illumina 1.8+	Illumina (current), Ion Torrent, PacBio (legacy)	Most common, also called Sanger format
+Phred+64	64	@ (64)	~ (126)	0	62	1.0 (Q0)	~0 (Q62)	Illumina 1.3-1.7	Illumina (legacy)	Deprecated, convert to Phred+33
+Solexa+64	64	; (59)	~ (126)	-5	62	N/A	~0 (Q62)	Solexa/Illumina 1.0-1.2	Illumina (very old)	Different probability calculation than Phred
+Phred+0	0	NULL (0)	\ (92)	0	92	1.0 (Q0)	~0 (Q92)	Binary representation	Internal processing	Not used in files, internal only

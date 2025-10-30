@@ -1,0 +1,9 @@
+encoding	base_A	base_C	base_G	base_T	base_N	base_U	bytes_per_base	bits_per_base	description	simd_friendly	notes
+ASCII	0x41 (65)	0x43 (67)	0x47 (71)	0x54 (84)	0x4E (78)	0x55 (85)	1	8	Standard ASCII characters	Yes	Direct character representation, case-insensitive possible (0x61-0x75 for lowercase)
+2-bit	0b00	0b01	0b10	0b11	N/A	N/A	0.25	2	Compact binary encoding	Yes	4 bases per byte, no ambiguity codes, requires separate N-mask
+2-bit-extended	0b00	0b01	0b10	0b11	0b00 (with mask)	N/A	0.25 + mask	2 + mask	2-bit with N-position mask	Yes	Separate bit mask for N positions
+4-bit	0x1	0x2	0x4	0x8	0xF	N/A	0.5	4	IUPAC ambiguity codes as bit flags	Yes	Supports all IUPAC codes (R=0x5, Y=0xA, etc.), 2 bases per byte
+IUPAC-nibble	0x0	0x1	0x2	0x3	0xE	0xF	0.5	4	IUPAC codes as 4-bit values	Partial	Sequential encoding of IUPAC alphabet
+UTF-8	0x41	0x43	0x47	0x54	0x4E	0x55	1-4	8-32	Unicode encoding	No	Same as ASCII for standard bases, supports extended Unicode
+Base-index	0	1	2	3	4	N/A	Varies	Varies	Index into lookup table	Yes	Used for NEON/SIMD table lookups
+Hashed-kmer	N/A	N/A	N/A	N/A	N/A	N/A	4-8	32-64	K-mer encoded as integer hash	N/A	K-mer specific, not per-base
