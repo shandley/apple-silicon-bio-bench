@@ -1,0 +1,14 @@
+kmer_size	num_possible_kmers	bits_for_2bit	bytes_for_2bit	bytes_for_u64	hash_collisions_likely	memory_for_table_mb	typical_use_case	tools_using	notes
+3	64	6	1	8	No	<1	Codon analysis, trinucleotide content	Custom scripts	Small k-mer space
+5	1024	10	2	8	No	<1	Short motif detection	Custom tools	Fits in lookup table
+7	16384	14	2	8	No	<1	Adapter detection (partial)	FastQC	Common for adapter prefix matching
+11	4194304	22	3	8	No	32	Short read overlap, contamination screening	Kraken (genus-level)	Fits comfortably in RAM
+13	67108864	26	4	8	No	512	Adapter detection (full), short read assembly	Trimmomatic, Cutadapt	Good balance for adapters
+15	1073741824	30	4	8	Possible	8192	Short read de novo assembly, error correction	SPAdes, Velvet	1GB k-mer space
+17	17179869184	34	5	8	Yes	131072	Short read assembly (Illumina)	ABySS, SOAPdenovo	128GB+ RAM needed
+19	274877906944	38	5	8	Yes	2097152	Medium read assembly	MEGAHIT	2TB RAM needed (impractical)
+21	4398046511104	42	6	8	Yes	33554432	Long read assembly, repeat resolution	Canu, Flye	Probabilistic data structures required
+23	70368744177664	46	6	8	Yes	536870912	Very long read assembly	Shasta	Bloom filters essential
+25	1125899906842624	50	7	8	Yes	8589934592	Specialized applications	Research tools	Hash-based only
+31	4611686018427387904	62	8	8	Yes	N/A	Genome comparison, large-scale analysis	Mash, Sourmash	MinHash/sketching required
+51	2^102	102	13	16	Yes	N/A	Unique sequence identification	Custom tools	Requires 128-bit integers

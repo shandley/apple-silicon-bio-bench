@@ -13,8 +13,17 @@
 ```
 reference/
 ├── hardware/               # Apple Silicon specifications
+│   ├── apple_silicon_chips.tsv    (17 chip variants)
+│   └── mac_models.tsv             (14 Mac/iPad models)
 ├── bioinformatics/        # Sequence data formats and encodings
+│   ├── dna_encodings.tsv          (9 DNA encodings)
+│   ├── quality_scores.tsv         (4 quality encodings)
+│   ├── sequence_file_formats.tsv  (13 file formats)
+│   ├── illumina_adapters.tsv      (24 adapter sequences)
+│   ├── contaminants.tsv           (17 contaminant sequences)
+│   └── kmer_parameters.tsv        (12 k-mer sizes)
 ├── performance/           # Algorithm complexity reference
+│   └── operation_complexity.tsv   (26 operations)
 └── README.md             # This file
 ```
 
@@ -144,6 +153,105 @@ reference/
 - Phred+33 is current standard
 - Quality filtering must handle correct offset
 - Conversion between encodings sometimes necessary
+
+---
+
+### `bioinformatics/illumina_adapters.tsv`
+
+**Illumina adapter sequences for TruSeq and Nextera library prep**
+
+**Columns**:
+- `adapter_name`: Adapter identifier
+- `library_prep`: Library prep kit (TruSeq, Nextera, Nextera XT, Small RNA, etc.)
+- `read_type`: Read 1, Read 2, Universal, Index, PCR Primer, Flow cell
+- `sequence`: DNA sequence (5' to 3')
+- `length_bp`: Sequence length in base pairs
+- `description`: Adapter description and function
+- `use_case`: Primary use case (adapter trimming, demultiplexing, etc.)
+- `notes`: Additional implementation details
+
+**Adapters covered**:
+- **TruSeq**: Universal, Indexed, Read 1/2, i7 index, short forms
+- **Nextera**: Transposase sequence, Read 1/2, i7/i5 index, short forms
+- **Nextera XT**: Read 1/2 adapters
+- **Small RNA**: 3'/5' adapters
+- **Multiplex**: Legacy Read 1/2 adapters
+- **PCR Primers**: Primer 1/2
+- **Flow cell**: P5/P7 adapters
+
+**Key for ASBB**:
+- Adapter detection experiments use these sequences
+- TruSeq adapters: 13-58 bp (most common: 33-34 bp)
+- Nextera transposase sequence: 19 bp (CTGTCTCTTATACACATCT)
+- Short forms define minimum detectable adapter length
+
+---
+
+### `bioinformatics/contaminants.tsv`
+
+**Common sequencing contaminants and quality control sequences**
+
+**Columns**:
+- `contaminant_name`: Contaminant identifier
+- `type`: Virus, Bacteria, rRNA, Artifact, Plasmid, Vector
+- `source`: Origin (Illumina Control, Contamination, Library prep, etc.)
+- `length_bp`: Genome/sequence length
+- `accession`: NCBI accession number (if applicable)
+- `sequence_file`: Reference FASTA filename
+- `description`: Detailed description
+- `spike_in_percent`: Typical spike-in percentage (for controls)
+- `use_case`: Primary use case (QC, contamination detection, filtering)
+- `notes`: Additional context
+
+**Contaminants covered**:
+- **PhiX174**: Illumina sequencing control (5386 bp, 1-5% spike-in)
+- **E. coli K-12**: Common lab contaminant (4.6 Mbp)
+- **Human rRNA**: rRNA contamination (18S, 28S, 5.8S, 5S)
+- **Mitochondrial DNA**: Organellar contamination (16.6 kbp)
+- **Adapter dimers**: TruSeq and Nextera adapter-adapter products (~120 bp)
+- **Primer dimers**: PCR artifacts (~60 bp)
+- **Poly-A/T/G/C**: Homopolymer artifacts
+- **Vectors**: Lambda, pUC19, UniVec database
+- **Mycoplasma**: Cell culture contaminant
+- **Yeast rRNA**: Lab contaminant
+
+**Key for ASBB**:
+- PhiX control used in 1-5% spike-in for lane balance
+- Adapter detection tests use adapter dimer sequences
+- Contamination screening tests use E. coli, rRNA, vectors
+- Poly-G artifacts specific to Illumina 2-color chemistry (NextSeq/NovaSeq)
+
+---
+
+### `bioinformatics/kmer_parameters.tsv`
+
+**K-mer size parameters and memory requirements**
+
+**Columns**:
+- `kmer_size`: K-mer size (k)
+- `num_possible_kmers`: Total k-mer space (4^k)
+- `bits_for_2bit`: Bits required for 2-bit encoding (2*k)
+- `bytes_for_2bit`: Bytes for 2-bit encoding (ceil(2*k / 8))
+- `bytes_for_u64`: Bytes for u64 integer storage (8)
+- `hash_collisions_likely`: Whether hash collisions are expected
+- `memory_for_table_mb`: Memory for full k-mer hash table (MB)
+- `typical_use_case`: Primary application
+- `tools_using`: Common tools using this k-mer size
+- `notes`: Memory/implementation considerations
+
+**K-mer sizes covered**:
+- **k=3-7**: Small k-mer space, lookup table friendly
+- **k=11-13**: Adapter detection, contamination screening (Kraken, Trimmomatic)
+- **k=15-17**: Short read assembly (SPAdes, ABySS, requires 8-128 GB RAM)
+- **k=19-25**: Long read assembly (Canu, Flye, requires probabilistic structures)
+- **k=31**: Genome comparison (Mash, Sourmash, MinHash/sketching)
+- **k=51**: Unique sequence identification (requires 128-bit integers)
+
+**Key for ASBB**:
+- k=13 is optimal for adapter detection (full adapter coverage)
+- k≤15 fits in RAM (≤8 GB), k≥17 requires probabilistic structures
+- K-mer extraction time complexity: O(n*k)
+- K-mer space grows exponentially: 4^k (k=21 → 4.4 trillion k-mers)
 
 ---
 

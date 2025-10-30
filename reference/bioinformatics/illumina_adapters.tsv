@@ -1,0 +1,24 @@
+adapter_name	library_prep	read_type	sequence	length_bp	description	use_case	notes
+TruSeq_Universal_Adapter	TruSeq	Universal	AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT	58	TruSeq Universal Adapter (5' end)	PCR primer binding site	Used in all TruSeq libraries
+TruSeq_Indexed_Adapter	TruSeq	Universal	GATCGGAAGAGCACACGTCTGAACTCCAGTCAC	33	TruSeq Indexed Adapter (3' end, without index)	Adapter trimming (common contaminant in reads)	Add 6bp index + ATCTCGTATGCCGTCTTCTGCTTG for full sequence
+TruSeq_Read1_Adapter	TruSeq	Read 1	AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC	34	TruSeq Read 1 Adapter	Read 1 adapter trimming	Most common adapter found in Read 1
+TruSeq_Read2_Adapter	TruSeq	Read 2	AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT	58	TruSeq Read 2 Adapter	Read 2 adapter trimming	Full reverse complement of Read 1 flow cell oligo
+TruSeq_Index_Adapter_i7	TruSeq	Index (i7)	GATCGGAAGAGCACACGTCTGAACTCCAGTCAC	33	TruSeq i7 index adapter (3' end)	Demultiplexing, adapter trimming	Followed by 6bp index sequence
+TruSeq_Adapter_Read1_short	TruSeq	Read 1	AGATCGGAAGAGC	13	TruSeq Read 1 short form	Partial adapter detection (minimum)	Minimum detectable adapter sequence
+TruSeq_Adapter_Read2_short	TruSeq	Read 2	AGATCGGAAGAGC	13	TruSeq Read 2 short form	Partial adapter detection (minimum)	Minimum detectable adapter sequence
+Nextera_Transposase_Seq	Nextera	Transposase	CTGTCTCTTATACACATCT	19	Nextera Transposase Sequence	Core transposase sequence	Added by Tn5 transposase during tagmentation
+Nextera_Read1_Adapter	Nextera	Read 1	TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG	33	Nextera Read 1 Adapter	Read 1 adapter trimming	Includes transposase sequence
+Nextera_Read2_Adapter	Nextera	Read 2	GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG	34	Nextera Read 2 Adapter	Read 2 adapter trimming	Includes transposase sequence
+Nextera_Index1_Adapter	Nextera	Index (i7)	AATGATACGGCGACCACCGAGATCTACAC	29	Nextera i7 index adapter	i7 index sequencing	Followed by 8bp index
+Nextera_Index2_Adapter	Nextera	Index (i5)	CAAGCAGAAGACGGCATACGAGAT	24	Nextera i5 index adapter	i5 index sequencing	Followed by 8bp index
+Nextera_Adapter_short	Nextera	Universal	CTGTCTCTTATA	12	Nextera short form	Partial adapter detection (minimum)	Minimum transposase sequence
+Nextera_XT_Read1	Nextera XT	Read 1	TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG	33	Nextera XT Read 1 Adapter	Nextera XT library prep	Same as standard Nextera Read 1
+Nextera_XT_Read2	Nextera XT	Read 2	GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG	34	Nextera XT Read 2 Adapter	Nextera XT library prep	Same as standard Nextera Read 2
+Small_RNA_3prime_Adapter	TruSeq Small RNA	3' adapter	TGGAATTCTCGGGTGCCAAGG	21	TruSeq Small RNA 3' Adapter (RA3)	Small RNA sequencing	Ligated to 3' end
+Small_RNA_5prime_Adapter	TruSeq Small RNA	5' adapter	GUUCAGAGUUCUACAGUCCGACGAUC	26	TruSeq Small RNA 5' Adapter (RA5)	Small RNA sequencing	Ligated to 5' end (RNA, contains U)
+Multiplex_Read1_Adapter	Multiplex	Read 1	GATCGGAAGAGCACACGTCT	20	Multiplexing Read 1 Adapter	Older multiplexing protocol	Legacy adapter
+Multiplex_Read2_Adapter	Multiplex	Read 2	ACACTCTTTCCCTACACGACGCTCTTCCGATCT	33	Multiplexing Read 2 Adapter	Older multiplexing protocol	Legacy adapter
+PCR_Primer1	TruSeq	PCR Primer	AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT	58	PCR Primer 1	PCR amplification	Binds to P5 flow cell oligo
+PCR_Primer2	TruSeq	PCR Primer	CAAGCAGAAGACGGCATACGAGATCGGTCTCGGCATTCCTGCTGAACCGCTCTTCCGATCT	61	PCR Primer 2	PCR amplification	Binds to P7 flow cell oligo
+P5_Adapter	Universal	Flow cell	AATGATACGGCGACCACCGAGATCTACAC	29	P5 Adapter (flow cell oligo)	Flow cell binding	Grafted to Illumina flow cell
+P7_Adapter	Universal	Flow cell	CAAGCAGAAGACGGCATACGAGAT	24	P7 Adapter (flow cell oligo)	Flow cell binding	Grafted to Illumina flow cell

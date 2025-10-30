@@ -1,0 +1,18 @@
+contaminant_name	type	source	length_bp	accession	sequence_file	description	spike_in_percent	use_case	notes
+PhiX174	Virus	Illumina Control	5386	NC_001422.1	phix174.fasta	Bacteriophage PhiX174 complete genome	1-5%	Sequencing run quality control, lane balance	Standard Illumina control with balanced GC content (45%)
+Escherichia_coli	Bacteria	Contamination	4641652	NC_000913.3	ecoli_k12.fasta	E. coli K-12 MG1655 complete genome	N/A	Contamination detection, quality control	Common lab contaminant
+Human_rRNA	rRNA	Contamination	Variable	NR_023363.1	human_rrna.fasta	Human ribosomal RNA genes (18S, 28S, 5.8S, 5S)	N/A	rRNA contamination filtering	Often >90% of RNA-seq reads if not depleted
+Adapter_Dimer	Artifact	Library prep	~120	N/A	N/A	Adapter-adapter ligation product (no insert)	Variable	Quality control, filtering	Peak at ~120bp in size distribution
+Primer_Dimer	Artifact	PCR	~60	N/A	N/A	Primer-primer amplification product	Variable	Quality control, PCR optimization	Peak at ~60bp in size distribution
+Mitochondrial_DNA	Organelle	Contamination	16569	NC_012920.1	human_mito.fasta	Human mitochondrial DNA complete genome	Variable	Contamination filtering (nuclear samples)	Can be 10-90% of reads in poor quality DNA
+Lambda_DNA	Virus	Size marker	48502	J02459.1	lambda.fasta	Bacteriophage lambda complete genome	N/A	Size marker, quantification standard	Used as molecular weight marker
+pUC19	Plasmid	Cloning vector	2686	L09137.2	puc19.fasta	pUC19 cloning vector	N/A	Contamination detection	Common cloning vector contaminant
+Mycoplasma	Bacteria	Contamination	~580000-1350000	Multiple	mycoplasma.fasta	Mycoplasma species (genitalium, pneumoniae)	N/A	Cell culture contamination	Common cell culture contaminant
+Yeast_rRNA	rRNA	Contamination	Variable	NR_132261.1	yeast_rrna.fasta	Saccharomyces cerevisiae rRNA	N/A	Contamination detection	Common in molecular biology labs
+Poly_A_Tail	Artifact	mRNA	Variable	N/A	AAAAAAAAAA...	Poly(A) tail sequence	N/A	RNA-seq quality, read-through detection	Present in mRNA reads
+Poly_T_Stretch	Artifact	Reverse transcription	Variable	N/A	TTTTTTTTTT...	Poly(T) primer sequence	N/A	RNA-seq adapter contamination	Oligo-dT priming artifact
+Poly_G	Artifact	Sequencing	Variable	N/A	GGGGGGGGGG...	Poly(G) artifact	N/A	Illumina 2-color chemistry artifact	NextSeq/NovaSeq quality issue
+Poly_C	Artifact	Sequencing	Variable	N/A	CCCCCCCCCC...	Poly(C) artifact	N/A	Quality control	May indicate sequencing issues
+UniVec	Vector	Cloning	Variable	N/A	univec.fasta	NCBI UniVec database (vectors, adapters, linkers)	N/A	Vector contamination screening	Comprehensive vector contamination DB
+Nextera_Adapter_Dimer	Artifact	Nextera prep	~120	N/A	CTGTCTCTTATACACATCT[N]CTGTCTCTTATACACATCT	Nextera transposase adapter dimer	Variable	Nextera library QC	Specific to Nextera library prep
+TruSeq_Adapter_Dimer	Artifact	TruSeq prep	~120	N/A	GATCGGAAGAGC[N]GATCGGAAGAGC	TruSeq adapter dimer	Variable	TruSeq library QC	Specific to TruSeq library prep
