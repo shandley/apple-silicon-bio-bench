@@ -9,4 +9,7 @@ description = "ASBB explorer component"
 
 [dependencies]
 asbb-core = { path = "../asbb-core" }
+asbb-ops = { path = "../asbb-ops" }
 anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true

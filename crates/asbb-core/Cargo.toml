@@ -11,3 +11,4 @@ description = "Core types and traits for Apple Silicon Bio Bench"
 anyhow.workspace = true
 thiserror.workspace = true
 serde.workspace = true
+serde_json.workspace = true

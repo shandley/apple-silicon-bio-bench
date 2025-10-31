@@ -10,3 +10,6 @@ description = "ASBB ops component"
 [dependencies]
 asbb-core = { path = "../asbb-core" }
 anyhow.workspace = true
+rayon.workspace = true
+serde.workspace = true
+serde_json.workspace = true

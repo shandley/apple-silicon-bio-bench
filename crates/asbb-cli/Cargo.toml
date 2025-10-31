@@ -9,4 +9,23 @@ description = "ASBB cli component"
 
 [dependencies]
 asbb-core = { path = "../asbb-core" }
+asbb-ops = { path = "../asbb-ops" }
+asbb-explorer = { path = "../asbb-explorer" }
 anyhow.workspace = true
+clap.workspace = true
+
+[[bin]]
+name = "asbb-pilot"
+path = "src/pilot.rs"
+
+[[bin]]
+name = "asbb-pilot-scales"
+path = "src/pilot_scales.rs"
+
+[[bin]]
+name = "asbb-pilot-gc"
+path = "src/pilot_gc.rs"
+
+[[bin]]
+name = "asbb-pilot-revcomp"
+path = "src/pilot_revcomp.rs"
