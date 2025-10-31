@@ -29,3 +29,7 @@ path = "src/pilot_gc.rs"
 [[bin]]
 name = "asbb-pilot-revcomp"
 path = "src/pilot_revcomp.rs"
+
+[[bin]]
+name = "asbb-pilot-quality"
+path = "src/pilot_quality.rs"
