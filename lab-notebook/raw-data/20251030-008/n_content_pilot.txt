@@ -1,0 +1,129 @@
+   Compiling asbb-ops v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-ops)
+   Compiling asbb-explorer v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-explorer)
+   Compiling asbb-cli v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-cli)
+    Finished `release` profile [optimized] target(s) in 1.78s
+     Running `target/release/asbb-pilot-ncontent`
+╔════════════════════════════════════════════════════════════════════╗
+║  N-Content Multi-Scale Pilot (N=5 Validation)                    ║
+║  Confirming Simple Counting Sub-Category Patterns                ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🎯 Hypothesis: N-content shows same patterns as simple counting ops
+   - NEON: 14-65× speedup (scale-dependent, like base/GC)
+   - Parallel threshold: 1,000 sequences
+   - Combined: 40-75× at large scale
+
+🔬 Question: Confirm counting sub-category with N=5 confidence
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Tiny (100 sequences, ~0.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 100 sequences
+
+  1️⃣  Naive (baseline)... ✓ 7.64 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 61.54 Mseqs/sec (8.05×)
+  3️⃣  Parallel (4T)...    ✓ 1.51 Mseqs/sec (0.20×)
+  4️⃣  NEON + Parallel... ✓ 1.70 Mseqs/sec (0.22×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Small (1000 sequences, ~0.3 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 1000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 13.07 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 103.46 Mseqs/sec (7.91×)
+  3️⃣  Parallel (4T)...    ✓ 16.57 Mseqs/sec (1.27×)
+  4️⃣  NEON + Parallel... ✓ 14.39 Mseqs/sec (1.10×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Medium (10000 sequences, ~3.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 10000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 8.83 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 70.26 Mseqs/sec (7.96×)
+  3️⃣  Parallel (4T)...    ✓ 102.08 Mseqs/sec (11.56×)
+  4️⃣  NEON + Parallel... ✓ 92.20 Mseqs/sec (10.44×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Large (100000 sequences, ~30.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 100000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 11.90 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 66.76 Mseqs/sec (5.61×)
+  3️⃣  Parallel (4T)...    ✓ 165.44 Mseqs/sec (13.90×)
+  4️⃣  NEON + Parallel... ✓ 177.29 Mseqs/sec (14.90×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: VeryLarge (1000000 sequences, ~300.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 1000000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 12.17 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 59.59 Mseqs/sec (4.90×)
+  3️⃣  Parallel (4T)...    ✓ 130.01 Mseqs/sec (10.68×)
+  4️⃣  NEON + Parallel... ✓ 78.34 Mseqs/sec (6.44×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Huge (10000000 sequences, ~3000.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 10000000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 11.25 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 33.34 Mseqs/sec (2.96×)
+  3️⃣  Parallel (4T)...    ✓ 169.32 Mseqs/sec (15.05×)
+  4️⃣  NEON + Parallel... ✓ 167.38 Mseqs/sec (14.88×)
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Performance Summary: N-Content Across Scales                     ║
+╚════════════════════════════════════════════════════════════════════╝
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║  N=5 Validation: Simple Counting Sub-Category                    ║
+╚════════════════════════════════════════════════════════════════════╝
+
+📊 Expected Patterns (from N=4):
+   Simple counting (base, GC):
+   • NEON (tiny): 35-65× speedup
+   • NEON (large): 14-18× speedup
+   • Parallel (1K): 7-13× speedup
+   • Parallel (100K+): 40-75× speedup
+
+   Complex aggregation (quality):
+   • NEON (tiny): 16-23× speedup (lower)
+   • NEON (large): 7-8× speedup (lower)
+   • Parallel (1K): 1.28× speedup (much lower)
+   • Parallel (100K+): 18-25× speedup (lower)
+
+🔬 N-Content Results:
+   Compare to simple counting patterns above...
+
+💡 N=5 Validation:
+
+   Operation         | NEON (tiny) | NEON (large) | Parallel (1K) | Parallel (100K)
+   ------------------|-------------|--------------|---------------|----------------
+   Base counting     | 53-65×      | 16-18×       | 7.33×         | 56.61×
+   GC content        | 35×         | 14×          | 13.42×        | 43.77×
+   N-content         | ???         | ???          | ???           | ???
+   Quality aggr.     | 16-23×      | 7-8×         | 1.28×         | 18-25× (complex)
+   Reverse comp.     | 1×          | 1×           | 1.69×         | 3.68× (transform)
+
+   N=5 Assessment:
+   ✅ If N-content matches base/GC → Simple counting sub-category CONFIRMED
+   ✅ VERY HIGH confidence (N=5) for simple counting rules
+   ✅ Ready for publication and Phase 2 (2-bit encoding)
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║  N-Content Pilot Complete (N=5 Validation)                       ║
+╚════════════════════════════════════════════════════════════════════╝
+
