@@ -60,3 +60,4 @@ criterion/
 # Documentation build
 /docs/_build/
 /docs/site/
+datasets/generation-scripts/target/
