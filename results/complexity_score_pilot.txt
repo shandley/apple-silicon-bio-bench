@@ -1,0 +1,13 @@
+   Compiling asbb-cli v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-cli)
+    Finished `release` profile [optimized] target(s) in 0.24s
+     Running `target/release/asbb-pilot-complexity`
+Complexity Score Pilot (N=10) - Simple aggregation
+
+Tiny: Naive 5.29M | Parallel 0.36×
+Small: Naive 3.51M | Parallel 1.98×
+Medium: Naive 4.31M | Parallel 3.87×
+Large: Naive 5.36M | Parallel 3.50×
+VeryLarge: Naive 5.36M | Parallel 3.81×
+Huge: Naive 5.03M | Parallel 4.03×
+
+Complexity Score Complete (N=10)

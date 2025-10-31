@@ -1,0 +1,15 @@
+   Compiling asbb-ops v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-ops)
+   Compiling asbb-explorer v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-explorer)
+   Compiling asbb-cli v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-cli)
+    Finished `release` profile [optimized] target(s) in 1.84s
+     Running `target/release/asbb-pilot-lenfilter`
+Length Filter Pilot (N=9) - Simple filtering
+
+Tiny: Naive 598.80M | Parallel 0.00×
+Small: Naive 2994.01M | Parallel 0.01×
+Medium: Naive 2000.00M | Parallel 0.09×
+Large: Naive 2063.60M | Parallel 0.49×
+VeryLarge: Naive 966.07M | Parallel 1.13×
+Huge: Naive 724.30M | Parallel 1.46×
+
+Length Filter Complete (N=9)

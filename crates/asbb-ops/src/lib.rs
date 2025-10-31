@@ -17,11 +17,16 @@
 #![allow(dead_code)] // Temporary during development
 #![allow(unused_variables)]
 
+pub mod at_content;
 pub mod base_counting;
+pub mod complexity_score;
 pub mod gc_content;
+pub mod length_filter;
 pub mod n_content;
 pub mod quality_aggregation;
+pub mod quality_filter;
 pub mod reverse_complement;
+pub mod sequence_length;
 
 // Re-export common types
 pub use asbb_core::{

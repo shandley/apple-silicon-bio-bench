@@ -15,6 +15,7 @@ Cargo.lock
 # Generated datasets (large files)
 datasets/**/*.fasta
 datasets/**/*.fastq
+datasets/**/*.fq
 datasets/**/*.fa.gz
 datasets/**/*.fq.gz
 

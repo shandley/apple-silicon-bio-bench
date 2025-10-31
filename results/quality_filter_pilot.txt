@@ -1,0 +1,22 @@
+   Compiling asbb-ops v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-ops)
+   Compiling asbb-explorer v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-explorer)
+   Compiling asbb-cli v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-cli)
+    Finished `release` profile [optimized] target(s) in 1.91s
+     Running `target/release/asbb-pilot-qfilter`
+Quality Filter Multi-Scale Pilot (N=8 Validation)
+Testing filtering category (branch-heavy)
+
+Scale: Tiny
+  Naive: 95.97 Mseqs/sec | NEON: 1.39× | Parallel: 0.01× | Combined: 0.02×
+Scale: Small
+  Naive: 104.35 Mseqs/sec | NEON: 1.44× | Parallel: 0.15× | Combined: 0.11×
+Scale: Medium
+  Naive: 103.63 Mseqs/sec | NEON: 1.11× | Parallel: 1.25× | Combined: 1.13×
+Scale: Large
+  Naive: 62.98 Mseqs/sec | NEON: 1.24× | Parallel: 2.89× | Combined: 2.82×
+Scale: VeryLarge
+  Naive: 55.27 Mseqs/sec | NEON: 1.23× | Parallel: 2.93× | Combined: 2.98×
+Scale: Huge
+  Naive: 51.97 Mseqs/sec | NEON: 1.15× | Parallel: 3.10× | Combined: 2.13×
+
+Quality Filter Pilot Complete (N=8)

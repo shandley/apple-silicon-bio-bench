@@ -1,0 +1,29 @@
+
+================================================================================
+COMPLEXITY-SPEEDUP REGRESSION ANALYSIS
+N=5 Operations: base_counting, gc_content, n_content, quality_aggregation
+Excluded: reverse_complement (encoding-limited outlier)
+================================================================================
+Loaded 61 data points (11 operations)
+Filtered to 55 points (excluding reverse_complement)
+
+Operations: ['sequence_length' 'at_content' 'quality_filter' 'length_filter'
+ 'complexity_score' 'operation' 'base_counting' 'gc_content'
+ 'reverse_complement' 'quality_aggregation' 'n_content']
+
+================================================================================
+EXPLORATORY DATA ANALYSIS
+================================================================================
+
+Complexity scores:
+Traceback (most recent call last):
+  File "/Users/scotthandley/Code/apple-silicon-bio-bench/analysis/complexity_regression.py", line 376, in <module>
+    main()
+    ~~~~^^
+  File "/Users/scotthandley/Code/apple-silicon-bio-bench/analysis/complexity_regression.py", line 351, in main
+    exploratory_analysis(df, df_filtered)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/scotthandley/Code/apple-silicon-bio-bench/analysis/complexity_regression.py", line 63, in exploratory_analysis
+    print(f"  {op:25s}: {score:.3f}")
+                        ^^^^^^^^^^^
+ValueError: Unknown format code 'f' for object of type 'str'

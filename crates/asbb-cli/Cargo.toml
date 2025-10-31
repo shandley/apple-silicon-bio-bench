@@ -37,3 +37,23 @@ path = "src/pilot_quality.rs"
 [[bin]]
 name = "asbb-pilot-ncontent"
 path = "src/pilot_n_content.rs"
+
+[[bin]]
+name = "asbb-pilot-seqlen"
+path = "src/pilot_sequence_length.rs"
+
+[[bin]]
+name = "asbb-pilot-at"
+path = "src/pilot_at_content.rs"
+
+[[bin]]
+name = "asbb-pilot-qfilter"
+path = "src/pilot_quality_filter.rs"
+
+[[bin]]
+name = "asbb-pilot-lenfilter"
+path = "src/pilot_length_filter.rs"
+
+[[bin]]
+name = "asbb-pilot-complexity"
+path = "src/pilot_complexity_score.rs"

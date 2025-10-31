@@ -1,0 +1,20 @@
+[package]
+name = "datagen"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+# This is a standalone binary, not part of the main ASBB workspace
+
+[[bin]]
+name = "datagen"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+rand = "0.8"
+rand_distr = "0.4"
+indicatif = "0.17"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

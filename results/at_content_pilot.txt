@@ -1,0 +1,22 @@
+   Compiling asbb-ops v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-ops)
+   Compiling asbb-explorer v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-explorer)
+   Compiling asbb-cli v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-cli)
+    Finished `release` profile [optimized] target(s) in 0.96s
+     Running `target/release/asbb-pilot-at`
+AT Content Multi-Scale Pilot (N=7 Validation)
+Expected: Similar to GC content (simple counting pattern)
+
+Scale: Tiny
+  Naive: 3.77 Mseqs/sec | NEON: 25.50× | Parallel: 0.58× | Combined: 0.61×
+Scale: Small
+  Naive: 2.29 Mseqs/sec | NEON: 45.03× | Parallel: 5.61× | Combined: 5.21×
+Scale: Medium
+  Naive: 2.00 Mseqs/sec | NEON: 21.06× | Parallel: 32.19× | Combined: 35.46×
+Scale: Large
+  Naive: 2.13 Mseqs/sec | NEON: 12.11× | Parallel: 40.42× | Combined: 35.75×
+Scale: VeryLarge
+  Naive: 2.13 Mseqs/sec | NEON: 13.14× | Parallel: 42.26× | Combined: 48.30×
+Scale: Huge
+  Naive: 2.06 Mseqs/sec | NEON: 13.69× | Parallel: 49.81× | Combined: 50.98×
+
+AT Content Pilot Complete (N=7)
