@@ -1,0 +1,128 @@
+   Compiling asbb-cli v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-cli)
+warning: unused import: `PerformanceResult`
+  --> crates/asbb-cli/src/pilot_quality.rs:19:33
+   |
+19 | use asbb_core::{HardwareConfig, PerformanceResult, SequenceRecord};
+   |                                 ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: `asbb-cli` (bin "asbb-pilot-quality") generated 1 warning (run `cargo fix --bin "asbb-pilot-quality"` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 0.67s
+     Running `target/release/asbb-pilot-quality`
+╔════════════════════════════════════════════════════════════════════╗
+║  Quality Aggregation Multi-Scale Pilot (N=4 Validation)          ║
+║  Testing Element-Wise Counting Sub-Category Hypothesis           ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🎯 Hypothesis: Quality aggregation shows same patterns as counting ops
+   - NEON: 14-35× speedup (scale-dependent, cache effects)
+   - Parallel threshold: 1,000 sequences
+   - Combined: 40-75× at large scale
+
+🔬 Question: Does pattern hold for quality scores (vs bases)?
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Tiny (100 sequences, ~0.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 100 sequences
+
+  1️⃣  Naive (baseline)... ✓ 5.97 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 100.00 Mseqs/sec (16.75×)
+  3️⃣  Parallel (4T)...    ✓ 1.32 Mseqs/sec (0.22×)
+  4️⃣  NEON + Parallel... ✓ 1.01 Mseqs/sec (0.17×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Small (1000 sequences, ~0.3 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 1000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 4.73 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 107.62 Mseqs/sec (22.73×)
+  3️⃣  Parallel (4T)...    ✓ 6.05 Mseqs/sec (1.28×)
+  4️⃣  NEON + Parallel... ✓ 9.30 Mseqs/sec (1.96×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Medium (10000 sequences, ~3.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 10000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 5.34 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 84.39 Mseqs/sec (15.81×)
+  3️⃣  Parallel (4T)...    ✓ 49.71 Mseqs/sec (9.31×)
+  4️⃣  NEON + Parallel... ✓ 35.29 Mseqs/sec (6.61×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Large (100000 sequences, ~30.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 100000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 6.13 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 44.20 Mseqs/sec (7.21×)
+  3️⃣  Parallel (4T)...    ✓ 115.85 Mseqs/sec (18.90×)
+  4️⃣  NEON + Parallel... ✓ 74.01 Mseqs/sec (12.08×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: VeryLarge (1000000 sequences, ~300.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 1000000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 6.19 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 47.71 Mseqs/sec (7.71×)
+  3️⃣  Parallel (4T)...    ✓ 142.40 Mseqs/sec (23.01×)
+  4️⃣  NEON + Parallel... ✓ 135.58 Mseqs/sec (21.91×)
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Scale: Huge (10000000 sequences, ~3000.0 MB)                    
+╚════════════════════════════════════════════════════════════════════╝
+
+📂 Loading data... loaded 10000000 sequences
+
+  1️⃣  Naive (baseline)... ✓ 6.22 Mseqs/sec
+  2️⃣  NEON SIMD...        ✓ 49.94 Mseqs/sec (8.03×)
+  3️⃣  Parallel (4T)...    ✓ 154.27 Mseqs/sec (24.80×)
+  4️⃣  NEON + Parallel... ✓ 159.08 Mseqs/sec (25.58×)
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Performance Summary: Quality Aggregation Across Scales          ║
+╚════════════════════════════════════════════════════════════════════╝
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║  N=4 Validation: Element-Wise Counting Sub-Category              ║
+╚════════════════════════════════════════════════════════════════════╝
+
+📊 Expected Patterns (from N=3: base counting, GC content, reverse complement):
+   • NEON (tiny): 35-65× (counting ops), 1× (transform ops)
+   • NEON (large): 14-18× (counting ops), 1× (transform ops)
+   • Parallel threshold: 1,000 sequences
+   • Parallel (100K+): 43-60× (counting ops), 3-4× (transform ops)
+
+🔬 Quality Aggregation Actual Results:
+   Compare to expected counting patterns above...
+
+💡 Validation Summary:
+   Compare these results to:
+
+   Operation         | NEON (tiny) | NEON (large) | Parallel (1K) | Parallel (100K)
+   ------------------|-------------|--------------|---------------|----------------
+   Base counting     | 53-65×      | 16-18×       | 7.33×         | 56.61×
+   GC content        | 35×         | 14×          | 13.42×        | 43.77×
+   Reverse complement| 1×          | 1×           | 1.69×         | 3.68× (transform)
+   Quality aggr.     | ???         | ???          | ???           | ???
+
+   Pattern validation:
+   ✅ If similar to base/GC → Counting sub-category VALIDATED (N=4)
+   ⚠️  If different → Operation complexity or data type affects patterns
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║  Quality Aggregation Pilot Complete (N=4 Validation)             ║
+╚════════════════════════════════════════════════════════════════════╝
+
