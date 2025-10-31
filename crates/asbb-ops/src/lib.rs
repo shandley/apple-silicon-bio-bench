@@ -19,6 +19,7 @@
 
 pub mod base_counting;
 pub mod gc_content;
+pub mod n_content;
 pub mod quality_aggregation;
 pub mod reverse_complement;
 
