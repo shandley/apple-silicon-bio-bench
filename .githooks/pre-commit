@@ -1,0 +1,108 @@
+#!/bin/bash
+# Git Pre-Commit Hook: Validate lab notebook entries
+# This is a backstop validation that runs before git commit
+
+echo "🔬 Lab Notebook Pre-Commit Validation"
+
+# Check for new or modified markdown files in lab-notebook/ (exclude raw-data and INDEX.md)
+staged_lab_files=$(git diff --cached --name-only --diff-filter=AM | grep "^lab-notebook/.*\.md$" | grep -v "INDEX.md" | grep -v "raw-data/")
+
+if [ -z "$staged_lab_files" ]; then
+    # No lab notebook files staged, exit cleanly
+    exit 0
+fi
+
+echo "   Found $(echo "$staged_lab_files" | wc -l | xargs) lab notebook file(s) to validate"
+
+validation_failed=0
+
+for file in $staged_lab_files; do
+    if [ ! -f "$file" ]; then
+        continue
+    fi
+
+    basename=$(basename "$file")
+    echo ""
+    echo "   Validating: $basename"
+
+    # 1. Validate naming convention
+    if ! echo "$basename" | grep -qE '^[0-9]{8}-[0-9]{3}-[A-Z]+-.*\.md$'; then
+        echo "   ❌ INVALID FILENAME FORMAT"
+        echo "      Expected: YYYYMMDD-NNN-TYPE-description.md"
+        echo "      Got: $basename"
+        echo ""
+        echo "      Valid types: EXPERIMENT, ANALYSIS, REFLECTION, CHECKPOINT,"
+        echo "                   DECISION, PROTOCOL, EXTERNAL, META, SUMMARY"
+        validation_failed=1
+        continue
+    fi
+
+    # 2. Check for YAML frontmatter
+    if ! head -1 "$file" | grep -q "^---$"; then
+        echo "   ❌ MISSING YAML FRONTMATTER"
+        echo "      File must start with '---' and include metadata"
+        validation_failed=1
+        continue
+    fi
+
+    # 3. Check required frontmatter fields
+    missing_fields=""
+    for field in "entry_id" "date" "type" "status"; do
+        if ! grep -q "^$field:" "$file"; then
+            missing_fields="$missing_fields $field"
+        fi
+    done
+
+    if [ -n "$missing_fields" ]; then
+        echo "   ❌ MISSING REQUIRED FRONTMATTER FIELDS:$missing_fields"
+        echo "      Required: entry_id, date, type, status"
+        validation_failed=1
+        continue
+    fi
+
+    # 4. Validate entry_id matches filename
+    entry_id=$(grep "^entry_id:" "$file" | head -1 | sed 's/entry_id: *//')
+    expected_id=$(basename "$file" .md)
+    if [ "$entry_id" != "$expected_id" ]; then
+        echo "   ⚠️  WARNING: entry_id ($entry_id) doesn't match filename ($expected_id)"
+    fi
+
+    # 5. Validate type matches filename
+    type_in_frontmatter=$(grep "^type:" "$file" | head -1 | sed 's/type: *//')
+    type_in_filename=$(echo "$basename" | cut -d'-' -f3)
+    if [ "$type_in_frontmatter" != "$type_in_filename" ]; then
+        echo "   ⚠️  WARNING: type in frontmatter ($type_in_frontmatter) doesn't match filename ($type_in_filename)"
+    fi
+
+    # 6. Check if INDEX.md was updated (for new entries)
+    if git diff --cached --name-only | grep -q "^lab-notebook/INDEX.md$"; then
+        # INDEX.md is staged, check if this entry is in it
+        entry_id_short=$(basename "$file" .md)
+        if ! git show :lab-notebook/INDEX.md 2>/dev/null | grep -q "$entry_id_short"; then
+            echo "   ⚠️  WARNING: Entry not found in staged INDEX.md"
+        fi
+    else
+        # INDEX.md not staged
+        if git diff --cached --diff-filter=A --name-only | grep -q "^$file$"; then
+            # This is a new file (Added), not modified
+            echo "   ⚠️  WARNING: New entry added but INDEX.md not staged"
+            echo "      Remember to update lab-notebook/INDEX.md"
+        fi
+    fi
+
+    echo "   ✅ Validation passed"
+done
+
+if [ $validation_failed -eq 1 ]; then
+    echo ""
+    echo "❌ LAB NOTEBOOK VALIDATION FAILED"
+    echo "   Please fix the errors above and try again"
+    echo ""
+    echo "   For help, see: lab-notebook/README.md (when created)"
+    echo "   Or review: .githooks/pre-commit (this script)"
+    exit 1
+fi
+
+echo ""
+echo "✅ All lab notebook entries validated successfully"
+exit 0

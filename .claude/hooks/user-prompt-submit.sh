@@ -35,3 +35,22 @@ Goal = Novel discoveries, not benchmarking x86 ports
 📖 See CLAUDE.md "Critical Philosophy: Think Apple Silicon First" for details
 
 EOF
+
+# Lab notebook suggestion
+USER_MESSAGE="$1"
+
+if echo "$USER_MESSAGE" | grep -qiE "experiment|test|run|implement|analyze|reflect|measure"; then
+    today=$(date +%Y%m%d)
+    recent_entries=$(find lab-notebook -name "${today}-*.md" 2>/dev/null | wc -l | xargs)
+
+    if [ $recent_entries -eq 0 ]; then
+        cat << 'LABEOF'
+
+💡 LAB NOTEBOOK REMINDER
+   Consider creating a lab notebook entry for this work:
+   Format: YYYYMMDD-NNN-TYPE-description.md
+   Types: EXPERIMENT, ANALYSIS, REFLECTION, CHECKPOINT, DECISION, PROTOCOL
+
+LABEOF
+    fi
+fi
