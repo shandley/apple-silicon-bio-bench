@@ -3,6 +3,23 @@
 **Systematic Performance Characterization of Bioinformatics Sequence Operations on Apple Silicon**
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
+---
+
+## 🎉 Phase 1 Day 1 Complete!
+
+**Multi-scale pilot experiments finished** - See [PHASE1_DAY1_SUMMARY.md](PHASE1_DAY1_SUMMARY.md) for complete results.
+
+**Key achievements**:
+- ✅ 24 experiments across 6 scales (100 → 10M sequences)
+- ✅ NEON: 16-65× speedup (universal benefit)
+- ✅ Parallel threshold: 1,000 sequences
+- ✅ Critical bug discovered and fixed (16× improvement)
+- ✅ Optimization rules derived from data
+
+**Ready for**: Week 1 Day 2 - Choose next operation or category to explore
+
+---
 [![Rust](https://img.shields.io/badge/rust-1.70%2B-orange.svg)](https://www.rust-lang.org/)
 
 ---
@@ -168,16 +185,26 @@ let config = OptimizationRules::default()
 
 ### Rules Are Data-Driven
 
-Every optimization decision is backed by experimental data:
+Every optimization decision is backed by experimental data.
 
-| Operation | Hardware | Data Scale | Speedup | Evidence |
-|-----------|----------|------------|---------|----------|
-| Base counting | NEON | Any | 85× | 120 experiments |
-| Quality filter | NEON | Any | 10-16× | 80 experiments |
-| Fuzzy k-mer match | GPU | >50K | 6× | 60 experiments |
-| Fuzzy k-mer match | GPU | <10K | 0.00004× | 40 experiments |
-| Hamming distance | NEON + Rayon | Any | 12× | 100 experiments |
-| GC content | NEON | Any | 45× | 100 experiments |
+**Phase 1 Day 1 Results** (Base Counting, M4 MacBook Pro):
+
+| Configuration | Data Scale | Speedup vs Naive | Finding |
+|---------------|------------|------------------|---------|
+| NEON-only | Tiny (100 seqs) | **53-65×** | Exceptional (cache effects) |
+| NEON-only | Large (10K+ seqs) | 16-18× | Consistent at scale |
+| Parallel (4T, NEON per-thread) | <1K seqs | 0.86-1.88× | Overhead dominates |
+| Parallel (4T, NEON per-thread) | 1K-10K seqs | 7-40× | Good scaling |
+| Parallel (4T, NEON per-thread) | >100K seqs | **56-60×** | Excellent scaling |
+
+**Critical Discovery**: Parallel implementation MUST use NEON per-thread, not naive (16× performance difference!)
+
+**Optimization Rules Derived**:
+- **NEON**: Beneficial at ALL scales for element-wise operations
+- **Parallel Threshold**: 1,000 sequences minimum
+- **Combined**: Use Parallel with NEON per-thread for >1K sequences (40-60× speedup)
+
+**Evidence**: 24 multi-scale experiments (6 scales × 4 configurations), results in `results/pilot_multiscale_findings.md`
 
 **No guesswork. No ad-hoc optimization. Just data.**
 
@@ -492,12 +519,14 @@ See [LICENSE](LICENSE) for details.
 
 ## Roadmap
 
-### Phase 1: Framework Development (Months 1-2) ← **Current**
+### Phase 1: Framework Development (Months 1-2) ← **Current (Day 1 Complete)**
 - [x] Repository setup
-- [ ] Core types and traits
-- [ ] Data generation
-- [ ] Benchmarking harness
-- [ ] Operation implementations
+- [x] Core types and traits (asbb-core: ~750 lines)
+- [x] Data generation (datagen tool + 6 scale datasets: 3.3 GB)
+- [x] Benchmarking harness (asbb-explorer: benchmark + runner modules)
+- [x] Operation implementations (base counting: naive, NEON, parallel backends)
+- [x] Multi-scale pilot experiment (6 scales: 100 → 10M sequences)
+- [x] **CRITICAL DISCOVERY**: Fixed parallel implementation bug (naive → NEON per-thread, 16× improvement)
 
 ### Phase 2: Experimentation (Month 3)
 - [ ] Level 1: Primitive operations (500 tests)
