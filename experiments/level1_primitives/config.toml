@@ -369,27 +369,29 @@ use_gpu = false
 use_2bit = true
 
 # GPU variants (2 configs)
-[[hardware.configs]]
-id = "gpu_small_batch"
-description = "GPU Metal, small batch (1K sequences)"
-use_neon = false
-num_threads = 1
-thread_assignment = "default"
-encoding = "ascii"
-use_gpu = true
-gpu_batch_size = 1000
-use_2bit = false
-
-[[hardware.configs]]
-id = "gpu_large_batch"
-description = "GPU Metal, large batch (100K sequences)"
-use_neon = false
-num_threads = 1
-thread_assignment = "default"
-encoding = "ascii"
-use_gpu = true
-gpu_batch_size = 100000
-use_2bit = false
+# COMMENTED OUT: Only complexity_score supports GPU. Will run GPU experiments separately.
+# See ISSUES.md for details.
+#[[hardware.configs]]
+#id = "gpu_small_batch"
+#description = "GPU Metal, small batch (1K sequences)"
+#use_neon = false
+#num_threads = 1
+#thread_assignment = "default"
+#encoding = "ascii"
+#use_gpu = true
+#gpu_batch_size = 1000
+#use_2bit = false
+#
+#[[hardware.configs]]
+#id = "gpu_large_batch"
+#description = "GPU Metal, large batch (100K sequences)"
+#use_neon = false
+#num_threads = 1
+#thread_assignment = "default"
+#encoding = "ascii"
+#use_gpu = true
+#gpu_batch_size = 100000
+#use_2bit = false
 
 # Combined optimization variants (7 configs)
 [[hardware.configs]]
@@ -442,16 +444,16 @@ encoding = "ascii"
 use_gpu = false
 use_2bit = true
 
-[[hardware.configs]]
-id = "gpu_neon_fallback"
-description = "GPU with NEON fallback (small batches)"
-use_neon = true
-num_threads = 1
-thread_assignment = "default"
-encoding = "ascii"
-use_gpu = true
-gpu_batch_size = 1000
-use_2bit = false
+#[[hardware.configs]]
+#id = "gpu_neon_fallback"
+#description = "GPU with NEON fallback (small batches)"
+#use_neon = true
+#num_threads = 1
+#thread_assignment = "default"
+#encoding = "ascii"
+#use_gpu = true
+#gpu_batch_size = 1000
+#use_2bit = false
 
 [[hardware.configs]]
 id = "optimal_all"

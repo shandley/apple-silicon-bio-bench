@@ -387,6 +387,7 @@ impl ExecutionEngine {
         println!("  Parallel workers: {}", self.config.execution.parallel_experiments);
 
         // Filter to only incomplete experiments
+        eprintln!("DEBUG: Filtering incomplete experiments...");
         let incomplete: Vec<_> = self
             .experiments
             .iter()
@@ -396,6 +397,7 @@ impl ExecutionEngine {
             })
             .cloned()
             .collect();
+        eprintln!("DEBUG: Filtered {} incomplete experiments", incomplete.len());
 
         if incomplete.is_empty() {
             println!("All experiments already completed!");
@@ -403,6 +405,7 @@ impl ExecutionEngine {
         }
 
         // Create progress bar
+        eprintln!("DEBUG: Creating progress bar...");
         let progress = if self.config.output.progress_bar {
             let pb = ProgressBar::new(incomplete.len() as u64);
             pb.set_style(
@@ -416,13 +419,17 @@ impl ExecutionEngine {
         } else {
             None
         };
+        eprintln!("DEBUG: Progress bar created");
 
         // Set up Rayon thread pool
+        eprintln!("DEBUG: Creating Rayon thread pool with {} threads...", self.config.execution.parallel_experiments);
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.config.execution.parallel_experiments)
             .build()?;
+        eprintln!("DEBUG: Thread pool created successfully");
 
         // Execute experiments in parallel
+        eprintln!("DEBUG: Starting parallel execution...");
         let checkpoint_interval = self.config.execution.checkpoint_interval;
         let results_ref = Arc::clone(&self.results);
         let checkpoint_ref = Arc::clone(&self.checkpoint);
@@ -430,16 +437,24 @@ impl ExecutionEngine {
         let config_clone = self.config.clone();
 
         pool.install(|| {
+            eprintln!("DEBUG: Inside pool.install, about to start par_iter...");
             incomplete
                 .par_iter()
                 .enumerate()
                 .try_for_each(|(i, experiment)| -> Result<()> {
+                    if i == 0 {
+                        eprintln!("DEBUG: Starting first experiment: {} with {}",
+                            experiment.operation, experiment.hardware_config_id);
+                    }
                     // Run experiment
                     let result = self.run_experiment(
                         experiment,
                         &registry_ref,
                         &config_clone,
                     )?;
+                    if i == 0 {
+                        eprintln!("DEBUG: First experiment completed successfully");
+                    }
 
                     // Store result
                     {
@@ -498,12 +513,19 @@ impl ExecutionEngine {
         registry: &Arc<OperationRegistry>,
         config: &ExperimentConfig,
     ) -> Result<ExperimentResult> {
+        eprintln!("DEBUG: run_experiment called for {} with {}",
+            experiment.operation, experiment.hardware_config_id);
+
         // Get operation from registry
+        eprintln!("DEBUG: Getting operation from registry...");
         let operation = registry.get(&experiment.operation)?;
         let metadata = registry.get_metadata(&experiment.operation)?;
+        eprintln!("DEBUG: Operation retrieved successfully");
 
         // Generate test data
+        eprintln!("DEBUG: Generating test data ({} sequences)...", experiment.num_sequences);
         let data = self.generate_test_data(experiment, config)?;
+        eprintln!("DEBUG: Test data generated");
 
         // Convert hardware config
         let hw_config = self.create_hardware_config(experiment, config)?;
