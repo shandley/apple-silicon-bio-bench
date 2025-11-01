@@ -93,3 +93,7 @@ path = "src/pilot_parallel.rs"
 [[bin]]
 name = "test-sequence-masking"
 path = "src/test_sequence_masking.rs"
+
+[[bin]]
+name = "run-level1"
+path = "src/run_level1.rs"
