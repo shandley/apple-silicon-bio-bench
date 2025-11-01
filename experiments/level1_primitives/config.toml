@@ -40,10 +40,13 @@ name = "very_large"
 sequences = 1000000
 description = "Very large dataset"
 
-[[datasets.scales]]
-name = "huge"
-sequences = 10000000
-description = "Huge dataset (stress test)"
+# COMMENTED OUT: Memory pressure on M4 MacBook Pro (24GB)
+# 8 workers × 3GB (10M sequences) = 24GB → OOM kills
+# Will re-enable with Mac Studio (256GB RAM)
+#[[datasets.scales]]
+#name = "huge"
+#sequences = 10000000
+#description = "Huge dataset (stress test)"
 
 # Operations (20 total: 10 existing + 10 new)
 [operations]
