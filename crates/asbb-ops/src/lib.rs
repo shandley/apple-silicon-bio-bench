@@ -21,13 +21,19 @@ pub mod at_content;
 pub mod base_counting;
 pub mod complexity_score;
 pub mod gc_content;
+pub mod hamming_distance;
+pub mod kmer_counting;
+pub mod kmer_extraction;
 pub mod length_filter;
+pub mod minhash_sketching;
 pub mod n_content;
 pub mod quality_aggregation;
 pub mod quality_filter;
+pub mod quality_statistics;
 pub mod reverse_complement;
 pub mod sequence_length;
 pub mod sequence_masking;
+pub mod translation;
 
 // Re-export common types
 pub use asbb_core::{
