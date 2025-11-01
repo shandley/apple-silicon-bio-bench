@@ -30,6 +30,9 @@ use std::time::Duration;
 /// 2-bit DNA encoding for efficient sequence representation
 pub mod encoding;
 
+/// Operation registry for centralized operation management
+pub mod operation_registry;
+
 // ============================================================================
 // Data Characteristics
 // ============================================================================

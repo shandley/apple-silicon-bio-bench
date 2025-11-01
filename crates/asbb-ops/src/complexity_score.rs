@@ -11,6 +11,50 @@ use serde::{Deserialize, Serialize};
 
 pub struct ComplexityScore;
 
+impl ComplexityScore {
+    pub fn new() -> Self {
+        Self
+    }
+
+    /// Execute complexity score using GPU (Metal)
+    ///
+    /// Complexity score is our most complex operation (0.61):
+    /// - Character counting (256 possible values)
+    /// - Unique character detection (bitset operations)
+    /// - Complexity calculation (diversity metric)
+    ///
+    /// **Hypothesis**: Highest complexity operation, may show different GPU pattern
+    #[cfg(all(target_os = "macos", feature = "gpu"))]
+    pub fn execute_gpu(&self, data: &[SequenceRecord]) -> Result<(ComplexityResult, asbb_gpu::GpuMetrics)> {
+        use asbb_gpu::MetalBackend;
+
+        let backend = MetalBackend::new()?;
+        let (complexity_scores, metrics) = backend.calculate_complexity_gpu(data)?;
+
+        let mut total_complexity = 0.0;
+        let mut low_count = 0;
+        let mut high_count = 0;
+
+        for &complexity in &complexity_scores {
+            total_complexity += complexity;
+            if complexity < 0.4 {
+                low_count += 1;
+            } else if complexity > 0.7 {
+                high_count += 1;
+            }
+        }
+
+        let result = ComplexityResult {
+            total_sequences: data.len(),
+            mean_complexity: if data.is_empty() { 0.0 } else { total_complexity / data.len() as f64 },
+            low_complexity_count: low_count,
+            high_complexity_count: high_count,
+        };
+
+        Ok((result, metrics))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ComplexityResult {
     pub total_sequences: usize,

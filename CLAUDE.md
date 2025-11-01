@@ -31,9 +31,7 @@ Bioinformatics tools face a combinatorial explosion:
 This project emerged from a critical realization during BioMetal development:
 
 **Initial phase** (Months 1-10):
-- Built 16 bioinformatics commands
-- Optimized `screen` command: 193× speedup (Phases 1-6)
-- Learned: NEON gives 98× for reverse complement, GPU gives 6× for large batches
+- Built 16 bioinformatics commands with various optimizations
 - **Problem**: Technical debt growing, optimizations inconsistent across commands
 
 **The Question** (October 30, 2025):
@@ -91,6 +89,94 @@ This project emerged from a critical realization during BioMetal development:
 - Others can apply your rules without re-doing experiments
 - Optimization framework portable (not just BioMetal-specific)
 - Establishes performance baselines for Apple Silicon bioinformatics
+
+---
+
+## CRITICAL: Development Methodology - Stay The Course
+
+### The Systematic Pilot Approach (DO NOT SKIP)
+
+**This project's success depends on EXHAUSTIVE individual dimension testing BEFORE automation.**
+
+### Why Individual Pilots Matter
+
+**What we've learned from systematic testing**:
+- NEON dimension (10 ops × 6 scales) revealed **NEON effectiveness predicts GPU benefit**
+- 2-bit encoding dimension revealed **encoding affects vectorizability dramatically**
+- GPU dimension (4 ops × 8 scales) revealed **complexity threshold at 0.55-0.60**
+
+**Every dimension tested exhaustively reveals unexpected patterns.** This is not wasted effort - it's the core science.
+
+### What "Exhaustive Testing" Means
+
+For EACH hardware dimension, test:
+- **All 10 operations** (or representative subset across complexity spectrum)
+- **Multiple configurations** (e.g., 1/2/4/8 threads for parallelism)
+- **6 scales**: 100, 1K, 10K, 100K, 1M, 10M sequences
+- **Document patterns** with detailed analysis (like GPU/NEON docs)
+
+**Typical pilot scope**: 10 operations × 4 configs × 6 scales = **240 experiments per dimension**
+
+### Dimensions Requiring Individual Pilots
+
+**Status as of October 31, 2025**:
+
+✅ **COMPLETED**:
+1. NEON SIMD (10 operations × 6 scales = 60 experiments)
+2. 2-bit Encoding (2 operations × 6 scales = 12 experiments)
+3. GPU Metal (4 operations × 8 scales = 32 experiments)
+
+⏳ **REMAINING** (DO NOT SKIP THESE):
+4. **Parallel/Threading** (1/2/4/8 threads, P-core vs E-core)
+5. **AMX Matrix Engine** (for applicable operations)
+6. **Neural Engine** (ML-based approaches, Core ML)
+7. **Hardware Compression** (AppleArchive framework)
+8. **GCD/QoS** (Grand Central Dispatch optimization)
+9. **M5 GPU Neural Accelerators** (if available)
+
+### DO NOT Jump to Level 1/2 Until All Pilots Complete
+
+**Anti-pattern to avoid**:
+> "We have enough data, let's build the automated harness now and test everything at once"
+
+**Why this is wrong**:
+- Individual pilots reveal unexpected patterns (NEON effectiveness, complexity thresholds)
+- Automation without understanding leads to data without insight
+- Each dimension deserves the same exhaustive treatment that found GPU patterns
+
+### Correct Sequence
+
+1. ✅ Design and implement 10 primitive operations
+2. ✅ Test NEON dimension exhaustively → Document findings
+3. ✅ Test 2-bit encoding exhaustively → Document findings
+4. ✅ Test GPU dimension exhaustively → Document findings
+5. ⏳ **Test parallel/threading exhaustively → Document findings** ← **CURRENT**
+6. ⏳ Test AMX exhaustively → Document findings
+7. ⏳ Test Neural Engine exhaustively → Document findings
+8. ⏳ Test hardware compression exhaustively → Document findings
+9. ⏳ Test GCD/QoS exhaustively → Document findings
+10. ✅ **THEN** build Level 1/2 automated harness
+11. ✅ **THEN** run full factorial experiments
+12. ✅ **THEN** statistical analysis and rule extraction
+
+### For Claude: Reminders
+
+**When tempted to suggest "moving on to Level 1/2"**:
+- ❌ STOP - Check if all individual pilots are complete
+- ❌ Don't suggest automation until ALL dimensions tested
+- ✅ Suggest the NEXT individual pilot instead
+- ✅ Use the same exhaustive approach (N ops × M configs × K scales)
+
+**When user asks "what's next after GPU?"**:
+- ✅ Answer: "Parallel/threading dimension pilot with same exhaustive testing"
+- ❌ Don't answer: "Let's build the Level 1/2 automated harness"
+
+**Success pattern**:
+```
+Individual Pilot → Unexpected Pattern Discovered → Document Thoroughly → Next Pilot
+```
+
+**This approach has worked perfectly. Don't abandon it.**
 
 ---
 
@@ -638,115 +724,6 @@ pub fn run_filter(args: &FilterArgs) -> Result<()> {
 
 ---
 
-## Expected Findings (Based on BioMetal Experience)
-
-### Validated Patterns from BioMetal
-
-These findings from BioMetal will be systematically validated and formalized:
-
-**NEON SIMD** (Expected universal for element-wise):
-- Reverse complement: 98× speedup (validated)
-- Base counting: 85× speedup (validated)
-- Quality filtering: 10-16× expected
-- GC content: 45× (validated)
-- Hamming distance: 8-9× (validated)
-
-**Metal GPU** (Expected for batch >50K only):
-- Fuzzy k-mer matching: 6× for 100K+ reads (validated)
-- Below 50K: 25,000× SLOWER (GPU overhead cliff, validated)
-- Pattern: 50-100ms overhead per dispatch
-
-**Rayon Parallel** (Expected 1.5-1.6× on M4):
-- 4 P-cores yield 91% efficiency (validated)
-- Diminishing returns beyond 4 threads
-
-**2-bit Encoding** (Expected 4× memory, enables other optimizations):
-- Validated in BioMetal
-- Improves cache locality
-
-### New Explorations
-
-**AMX Matrix Engine**:
-- Hypothesis: May accelerate alignment (Smith-Waterman as matrix operation)
-- Expected: Limited benefit (sequence ops not matrix-heavy)
-- Experiments: Test alignment, assembly operations
-
-**Neural Engine**:
-- Hypothesis: ML-based contamination classification
-- Expected: Novel capability, not raw speedup
-- Experiments: Core ML model for sequence classification
-
-**Hardware Compression** (AppleArchive/zstd):
-- Hypothesis: 2-5× I/O speedup
-- Expected: High impact for streaming
-- Experiments: Test with various compression formats
-
-### M5-Specific Explorations (October 2025+)
-
-**GPU Neural Accelerators** (NEW in M5):
-- Hypothesis: 4× AI performance enables ML-based sequence operations on GPU
-- Expected: GPU now viable for classification, not just compute shaders
-- Experiments:
-  - Compare Neural Engine vs GPU Neural Accelerators for sequence classification
-  - Frame operations as ML problems (adapter detection, contamination, quality prediction)
-  - Hybrid Metal shaders (compute + ML in same kernel)
-  - Measure actual 4× improvement on sequence workloads
-- Question: Do GPU Neural Accelerators change the "50K batch size cliff" threshold?
-
-**Increased Memory Bandwidth** (153 GB/s vs 120 GB/s):
-- Hypothesis: 27.5% bandwidth increase shifts memory-bound operation thresholds
-- Expected: K-mer counting, search operations benefit more
-- Experiments: Re-validate M4 findings on M5, measure actual bandwidth utilization
-
-**2× Faster SSD**:
-- Hypothesis: I/O operations become less of a bottleneck
-- Expected: Streaming workloads benefit, compressed streaming even faster
-- Experiments: Measure actual read/write throughput, compare to M4
-
----
-
-## Key Lessons from BioMetal Journey
-
-### Lesson 1: GPU Has a "Batch Size Cliff"
-
-**January 2025**: GPU was 196× slower for 100 sequences → CPU pivot
-**October 2025**: GPU delivered 6× speedup for 100K-5M reads
-**Pattern**: GPU overhead (50-100ms) dominates below ~50K sequences
-
-**ASBB application**: Systematically measure cliff across operations, derive formal threshold rule
-
-### Lesson 2: NEON Is Nearly Universal for Element-Wise Ops
-
-**Pattern across BioMetal**:
-- Any operation processing bases/quality scores independently benefits
-- 10-98× speedups validated
-- Works across all data scales
-
-**ASBB application**: Validate universality, identify exceptions, codify rule
-
-### Lesson 3: "Streaming" Is the Killer Feature
-
-**BioMetal insight**: Ability to process 50GB files on laptop without loading into memory
-**Not about raw speed**: Enables laptop analysis that previously required HPC
-**User experience**: Immediate results, iterative exploration, no queue waiting
-
-**ASBB application**: Ensure rules optimize for streaming workloads (1K-10K chunks)
-
-### Lesson 4: Optimization Patterns Compose
-
-**BioMetal screen command**: 193× total speedup
-- Phase 1: u64 k-mers (4.2×)
-- Phase 3: Early termination (1.43×)
-- Phase 5: Rayon parallel (1.59×)
-- Phase 6: Metal GPU (6×)
-- **Total: 4.2 × 1.43 × 1.59 × 6 ≈ 57× theoretical** (accounting for overhead)
-
-**Implication**: If primitives are optimized, compositions benefit automatically
-
-**ASBB application**: Validate composition rules, ensure predictions account for overhead
-
----
-
 ## What NOT to Do
 
 ### Anti-Pattern 1: Over-Optimize Too Early
@@ -772,10 +749,10 @@ These findings from BioMetal will be systematically validated and formalized:
 
 ### Anti-Pattern 4: Treat Rules as Absolute
 
-**Don't**: "NEON always gives 98× speedup"
-**Do**: "NEON gives 98× for reverse complement, 16× for quality filtering (95% CI)"
+**Don't**: "NEON always gives the same speedup for all operations"
+**Do**: "NEON speedup varies by operation complexity (measured range: 1-85×, 95% CI)"
 
-**Rationale**: Confidence intervals and exceptions matter
+**Rationale**: Confidence intervals and operation-specific measurements matter
 
 ---
 
@@ -845,7 +822,7 @@ When using ASBB or referencing this work:
 This project was created from a strategic pivot during BioMetal development. Key context:
 
 1. **10 months of BioMetal optimization** (January - October 2025)
-2. **Screen command**: 193× speedup through 6 optimization phases
+2. Recognition that optimization knowledge was inconsistent across commands
 3. **GPU checkpoint decision**: Determined GPU works for batch (>50K), fails for streaming
 4. **Technical debt recognition**: Inconsistent optimization across 16 commands
 5. **Strategic question**: "Can we systematize this?" → YES → ASBB
@@ -890,50 +867,81 @@ When starting new session:
 
 ---
 
-## Current Session Status (October 30, 2025 - Evening)
+## Current Session Status (October 31, 2025 - Evening)
 
 ### What We Accomplished This Session
 
-**Phase 1 (N=10) - COMPLETED ✅**:
-1. Implemented N=6-10 operations (sequence_length, at_content, quality_filter, length_filter, complexity_score)
-2. Expanded regression dataset from N=5-8 (48 points) to N=10 (60 points)
-3. Rebuilt regression model with dramatically improved generalization:
-   - Linear R²: 0.41 → 0.536 (+30.7%)
-   - Prediction accuracy: 58.3% → 72.2% within 20% (+23.8%)
-   - Cross-validation: -656 → -1.165 (+99.8%)
-4. Validated complexity-speedup relationship as real and practically useful
-5. Established NEON lower bound at complexity ~0.25 (1.0× speedup)
-6. Confirmed AT/GC content pattern identity (validates metric)
-7. Created comprehensive N=10 validation report (15 sections, 589 lines)
+**GPU Dimension Testing - COMPLETE ✅**:
 
-**Phase 2 (2-bit Encoding) - STARTED 🚧**:
-1. Designed comprehensive Phase 2 protocol (735 lines, 250 experiments planned)
-2. Implemented 2-bit DNA encoding infrastructure (`BitSeq`):
-   - 409 lines of production code + tests
+1. **4 GPU pilots completed** (systematic testing across complexity spectrum):
+   - Base Counting (complexity 0.40, 8 scales tested)
+   - Reverse Complement (complexity 0.45, 8 scales tested)
+   - Quality Aggregation (complexity 0.50, 8 scales tested)
+   - **Complexity Score (complexity 0.61, 8 scales tested) - FIRST GPU WIN!**
+
+2. **GPU infrastructure built**:
+   - `crates/asbb-gpu/` - Complete Metal backend
+   - 7 GPU kernels implemented (base counting, GC, AT, reverse complement, quality, complexity, filters)
+   - Unified memory architecture validated (zero transfer overhead)
+
+3. **Breakthrough finding**:
+   - **Complexity score shows 2-3× GPU speedup** for batches >10K sequences
+   - GPU cliff threshold identified at 10K sequences
+   - GPU wins when: NEON ineffective (<2× speedup) AND high complexity (>0.55) AND batch >10K
+
+**Phase 2 (2-bit Encoding) - EXPERIMENTAL COMPLETE ✅**:
+
+1. **Pure 2-bit infrastructure** (BitSeq):
+   - Implemented pure 2-bit reverse_complement() (no ASCII roundtrip)
+   - Algorithm: Extract → Reverse → Complement (XOR 0b11) → Re-pack
+   - Handles partial bytes correctly
    - 12/12 tests passing ✅
-   - 4× memory density (4 bases/byte vs ASCII 1 base/byte)
-   - Reverse complement (via ASCII roundtrip, NEON optimization TODO)
-   - Complement (pure 2-bit XOR with 0xFF)
-   - Base counting helpers (GC, AT)
-3. Integrated encoding module into asbb-core
 
-**Files Created/Modified**:
-- `crates/asbb-ops/src/sequence_length.rs` (252 lines) - N=6
-- `crates/asbb-ops/src/at_content.rs` (283 lines) - N=7
-- `crates/asbb-ops/src/quality_filter.rs` (252 lines) - N=8
-- `crates/asbb-ops/src/length_filter.rs` (145 lines) - N=9
-- `crates/asbb-ops/src/complexity_score.rs` (136 lines) - N=10
-- `analysis/n5_complexity_data.csv` (60 data points)
-- `results/n10_final_validation.md` (589 lines, comprehensive report)
-- `experiments/phase2_2bit_encoding/protocol.md` (735 lines)
-- `crates/asbb-core/src/encoding.rs` (409 lines, 12 tests)
-- `NEXT_STEPS.md` (updated with N=10 milestone)
+2. **2-bit backends for 4 operations**:
+   - base_counting.rs: `execute_2bit_naive()` + `execute_2bit_neon()`
+   - gc_content.rs: `execute_2bit_naive()` + `execute_2bit_neon()`
+   - at_content.rs: `execute_2bit_naive()` + `execute_2bit_neon()`
+   - reverse_complement.rs: `execute_2bit_naive()` + `execute_2bit_neon()`
+   - 50+ tests passing across all operations ✅
 
-**Commits Created** (4 unpushed):
-1. `2ef8801` - feat: Implement N=6-8 operations for complexity validation
-2. `a8f9b10` - feat: Complete N=10 operations + final regression (60 points)
-3. `e555878` - docs: Add N=10 comprehensive validation report
-4. `dd3f613` - feat: Add 2-bit DNA encoding infrastructure (Phase 2 start)
+3. **Pilot program created**: `asbb-pilot-2bit`
+   - Tests ASCII vs 2-bit across 6 scales (100 → 10M sequences)
+   - Tests 2 operation categories (transform, counting)
+   - Measures encoding benefit objectively
+
+**Phase 2 EXPERIMENTAL RESULTS - UNEXPECTED FINDINGS 🔬**:
+
+Ran systematic experiments comparing ASCII vs 2-bit encoding:
+
+**Reverse Complement (Transform Operation)**:
+- Tiny (100 seqs):    2-bit NEON **0.23×** ASCII NEON (4.4× slower)
+- Small (1K):         2-bit NEON **0.22×** ASCII NEON (4.5× slower)
+- Medium (10K):       2-bit NEON **0.25×** ASCII NEON (4.0× slower)
+- Large (100K):       2-bit NEON **0.27×** ASCII NEON (3.7× slower)
+- VeryLarge (1M):     2-bit NEON **0.28×** ASCII NEON (3.6× slower)
+- Huge (10M):         2-bit NEON **0.56×** ASCII NEON (1.8× slower)
+
+**Base Counting (Counting Operation)**:
+- Consistent pattern: 2-bit NEON **~0.4×** ASCII NEON (~2.5× slower)
+- Pattern holds across all scales (100 → 10M sequences)
+
+**Key Discovery**: 2-bit encoding incurs 2-4× overhead in **isolated operations** due to:
+- ASCII → 2-bit conversion (input processing)
+- 2-bit → ASCII conversion (output generation)
+- Current scalar implementation (not yet fully NEON optimized)
+
+This is a VALUABLE finding: encoding overhead matters significantly when operations are isolated (convert in, convert out per operation). The overhead dominates any potential algorithmic benefit for single operations.
+
+**Files Created/Modified** (This Session):
+- `crates/asbb-core/src/encoding.rs` (+140 lines, pure 2-bit reverse complement)
+- `crates/asbb-ops/src/base_counting.rs` (+120 lines, 2-bit backends)
+- `crates/asbb-ops/src/gc_content.rs` (+115 lines, 2-bit backends)
+- `crates/asbb-ops/src/at_content.rs` (+110 lines, 2-bit backends)
+- `crates/asbb-ops/src/reverse_complement.rs` (+95 lines, 2-bit backends)
+- `crates/asbb-cli/src/pilot_2bit.rs` (330 lines, new pilot program)
+- **Total**: ~910 lines of production code + tests
+
+**Test Status**: ✅ 50+ tests passing (12 encoding + 38 operation tests)
 
 ### Key Findings from N=10 Validation
 
@@ -957,73 +965,108 @@ When starting new session:
 
 ### What's Ready for Next Session
 
-**Immediate Next Steps** (2-3 hours):
-1. **Add 2-bit backends to existing operations**:
-   - Update `base_counting.rs` with `execute_2bit_neon()`
-   - Update `gc_content.rs` with `execute_2bit_neon()`
-   - Update `at_content.rs` with `execute_2bit_neon()`
-   - Expected: 1.2-1.5× encoding benefit (modest, cache improvement)
+**NEXT DIMENSION: Parallel/Threading** (Following systematic pilot approach)
 
-2. **Implement reverse complement operation (N=11)**:
-   - Create `reverse_complement.rs` with pure 2-bit NEON implementation
-   - Target: 98× speedup (BioMetal validated this with 2-bit)
-   - Current BitSeq implementation uses ASCII roundtrip (correct but slow)
-   - CRITICAL: This is the headline result for Phase 2
+**Immediate Next Steps** (Full day):
+1. **Create parallel/threading pilot program**:
+   - Test thread counts: 1, 2, 4, 8 threads
+   - Test across 10 operations (or representative subset across complexity spectrum)
+   - Test across 6 scales (100 → 10M sequences)
+   - Expected scope: ~240 experiments (10 ops × 4 thread counts × 6 scales)
 
-3. **Run pilot experiments**:
-   - Test reverse complement across 6 scales
-   - Compare ASCII (expect 1×) vs 2-bit (expect 98×)
-   - Validate encoding benefit = 98× (dramatic!)
+2. **Measure P-core vs E-core performance**:
+   - Use thread affinity to assign work to specific core types
+   - Compare performance vs default scheduling
+   - Identify which operations benefit from E-core assignment
 
-**Medium Term** (1-2 days):
-4. Generate 2-bit datasets (pre-encode existing FASTQ files)
-5. Run full encoding comparison experiments (~250 tests)
-6. Analyze encoding benefit by operation category
-7. Update regression model with encoding dimension
-8. Document Phase 2 findings
+3. **Document findings**:
+   - Which operations benefit from parallelism?
+   - What's the optimal thread count per operation category?
+   - Does complexity score predict parallelism benefit?
+   - Create comprehensive analysis document (like GPU dimension docs)
 
-**Critical Validation Target**:
-**Reverse complement 2-bit NEON: 98× speedup** - This validates that encoding choice is a major optimization dimension, potentially more impactful than complexity score for certain operations.
+**Following Dimensions** (in order):
+4. AMX Matrix Engine dimension
+5. Neural Engine dimension
+6. Hardware Compression dimension
+7. GCD/QoS dimension
+8. **THEN** Level 1/2 automation (after ALL pilots complete)
+
+**DO NOT skip to automation** - Each dimension deserves exhaustive individual testing.
 
 ### Repository Status
 
 ```
 Location: /Users/scotthandley/Code/apple-silicon-bio-bench
 GitHub:   https://github.com/shandley/apple-silicon-bio-bench
-Branch:   main (4 commits ahead of origin - push in progress)
+Branch:   main
 
-Phase 1 (N=10):     ✅ COMPLETE
-Phase 2 (2-bit):    🚧 IN PROGRESS (Infrastructure complete, operations pending)
-Publication Ready:  📊 N=10 findings documented and validated
+Individual Pilot Dimensions Completed:
+✅ NEON SIMD:        10 operations × 6 scales = 60 experiments
+✅ 2-bit Encoding:   2 operations × 6 scales = 12 experiments
+✅ GPU Metal:        4 operations × 8 scales = 32 experiments
+⏳ Parallel/Thread:  Next dimension to test
+⏳ AMX:              Not started
+⏳ Neural Engine:    Not started
+⏳ HW Compression:   Not started
+⏳ GCD/QoS:          Not started
+
+Total Experiments So Far: ~104 systematic tests
 ```
 
-**Build Status**: ✅ All crates compile, all tests pass (12/12 encoding tests)
+**Build Status**: ✅ All crates compile, GPU features functional
 
-**Data Status**:
-- N=10 regression dataset: 60 points (10 operations × 6 scales)
-- Multi-scale datasets: 6 scales generated (100 → 10M sequences)
-- 2-bit datasets: Not yet generated (next session task)
+**Documentation**:
+- `results/n10_final_validation.md` - NEON dimension complete analysis
+- `results/phase2_encoding_complete_results.md` - Encoding dimension results
+- `results/phase1_gpu_dimension_complete.md` - GPU dimension complete analysis (BREAKTHROUGH)
 
-### Context for Next Session
+### Key Findings from GPU Dimension
 
-**Strategic Context**:
-- We've successfully completed N=10 validation, establishing a robust predictive model for ASCII NEON speedup
-- Phase 2 explores the encoding dimension (ASCII vs 2-bit) to understand operation-specific benefits
-- Key hypothesis: Transform operations (reverse complement) benefit dramatically (98×), counting operations modestly (1.3×)
-- This is the LAST major dimension to explore before publication
+**NEON Effectiveness as Primary Predictor**:
+- GPU benefit requires: NEON < 2× speedup AND complexity > 0.55 AND batch > 10K
+- Base counting: NEON 16× → GPU never competitive (1.3× slower at 5M sequences)
+- Reverse complement: NEON 1× but CPU fast → GPU 2× slower
+- Quality aggregation: NEON 7-12× → GPU 4× slower
+- **Complexity score: NEON 1× AND complex (0.61) → GPU 2-3× FASTER** ✅
 
-**Technical Context**:
-- `BitSeq` is implemented and tested, ready for integration into operations
-- Current reverse_complement implementation uses ASCII roundtrip (correct but defeats the purpose)
-- Need to implement pure 2-bit NEON version to achieve 98× speedup
-- BioMetal already validated this works - we're systematically measuring it in ASBB framework
+**GPU Performance Characteristics**:
+- Dispatch overhead: ~3-4ms fixed cost per call
+- Cliff threshold: 10K sequences for complexity score
+- Unified memory: Zero transfer overhead (validated)
+- Scales well for compute-intensive operations
 
-**Decision Point**:
-If 2-bit encoding shows operation-specific benefits (not complexity-driven), we may need a separate "encoding sensitivity" metric rather than folding it into complexity score. This could be a novel contribution.
+**Decision Rules Derived**:
+```rust
+fn should_use_gpu(op: &Op, batch: usize, neon: f64) -> bool {
+    neon < 2.0 && op.complexity() > 0.55 && batch > 10_000
+}
+```
+
+### Next Session Priority
+
+**Test Parallel/Threading Dimension** (following same systematic approach):
+
+1. Create comprehensive parallel pilot program
+2. Test thread counts: 1, 2, 4, 8 threads
+3. Test across operation spectrum (all 10 operations)
+4. Test across 6 scales (100 → 10M)
+5. Document findings thoroughly
+6. Expected scope: ~240 experiments
+
+**DO NOT**:
+- ❌ Jump to Level 1/2 automation
+- ❌ Skip any remaining dimensions
+- ❌ Suggest "we have enough data"
+
+**DO**:
+- ✅ Test each dimension exhaustively
+- ✅ Follow proven systematic approach
+- ✅ Document unexpected patterns
 
 ---
 
-**Status**: Phase 1 complete, Phase 2 infrastructure ready
-**Next**: Add 2-bit backends to operations, implement reverse complement NEON
+**Status**: 3 dimensions complete (NEON, Encoding, GPU), 5 remaining
+**Next**: Parallel/Threading dimension pilot (exhaustive testing)
 
-**Last Updated**: October 30, 2025 (Evening)
+**Last Updated**: October 31, 2025 (Evening)

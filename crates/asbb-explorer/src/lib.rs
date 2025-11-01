@@ -30,9 +30,11 @@ use std::time::Instant;
 
 pub mod benchmark;
 pub mod runner;
+pub mod execution_engine;
 
 pub use benchmark::Benchmark;
 pub use runner::BenchmarkRunner;
+pub use execution_engine::{ExecutionEngine, ExperimentConfig, ExperimentResult};
 
 /// Benchmark a single operation with a specific configuration
 ///

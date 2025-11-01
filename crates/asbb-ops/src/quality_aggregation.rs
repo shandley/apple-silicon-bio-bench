@@ -61,6 +61,39 @@ impl QualityStats {
     }
 }
 
+impl QualityAggregation {
+    pub fn new() -> Self {
+        Self
+    }
+
+    /// Execute quality aggregation using GPU (Metal)
+    ///
+    /// Quality aggregation computes min/max/sum statistics:
+    /// - Min/max operations across all quality scores
+    /// - Aggregation operation (complexity 0.50)
+    /// - Expected: Limited NEON benefit (reduction operations)
+    ///
+    /// **Hypothesis**: Higher complexity than counting, may show different GPU pattern
+    #[cfg(all(target_os = "macos", feature = "gpu"))]
+    pub fn execute_gpu(&self, data: &[SequenceRecord]) -> Result<(QualityStats, asbb_gpu::GpuMetrics)> {
+        use asbb_gpu::MetalBackend;
+
+        let backend = MetalBackend::new()?;
+        let (gpu_result, metrics) = backend.aggregate_quality_gpu(data)?;
+
+        let mut stats = QualityStats {
+            min_quality: gpu_result.min_quality,
+            max_quality: gpu_result.max_quality,
+            total_quality: gpu_result.total_quality,
+            num_bases: gpu_result.num_bases as u64,
+            mean_quality: 0.0,
+        };
+
+        stats.finalize();
+        Ok((stats, metrics))
+    }
+}
+
 impl PrimitiveOperation for QualityAggregation {
     fn name(&self) -> &str {
         "quality_aggregation"

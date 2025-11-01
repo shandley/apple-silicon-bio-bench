@@ -13,3 +13,11 @@ asbb-ops = { path = "../asbb-ops" }
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+toml = "0.8"
+rayon = "1.8"
+indicatif = "0.17"
+arrow = "53.0"
+parquet = "53.0"
+chrono = "0.4"
+rand = "0.8"
+rand_chacha = "0.3"

@@ -1,0 +1,305 @@
+    Finished `release` profile [optimized] target(s) in 0.04s
+     Running `target/release/asbb-pilot-2bit`
+╔════════════════════════════════════════════════════════════════════╗
+║        Phase 2: 2-Bit Encoding Experiments                        ║
+║        Comparing ASCII vs 2-Bit Performance                        ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🔬 Approach: Objective observation, no prior expectations
+📊 Operations: 5 compatible operations across categories
+   • Transform: reverse complement
+   • Counting (all): base counting
+   • Counting (GC): gc content
+   • Counting (AT): at content
+   • Simple: sequence length
+📏 Scales: 100 → 10M sequences
+
+═══════════════════════════════════════════════════════════════
+🧬 Reverse Complement (Transform Operation)
+═══════════════════════════════════════════════════════════════
+
+Testing ASCII vs 2-bit encoding across scales...
+
+📦 Scale: Tiny (100 sequences)
+   ASCII naive:         0.022 ms
+   ASCII NEON:          0.009 ms  (2.41× vs naive)
+   2-bit naive:         0.061 ms  (0.37× vs ASCII naive)
+   2-bit NEON:          0.039 ms  (1.54× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.23× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Small (1000 sequences)
+   ASCII naive:         0.108 ms
+   ASCII NEON:          0.095 ms  (1.13× vs naive)
+   2-bit naive:         0.592 ms  (0.18× vs ASCII naive)
+   2-bit NEON:          0.647 ms  (0.92× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.15× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Medium (10000 sequences)
+   ASCII naive:         1.406 ms
+   ASCII NEON:          1.217 ms  (1.16× vs naive)
+   2-bit naive:         5.096 ms  (0.28× vs ASCII naive)
+   2-bit NEON:          4.731 ms  (1.08× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.26× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Large (100000 sequences)
+   ASCII naive:        16.421 ms
+   ASCII NEON:         16.180 ms  (1.01× vs naive)
+   2-bit naive:        40.754 ms  (0.40× vs ASCII naive)
+   2-bit NEON:         40.773 ms  (1.00× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.40× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: VeryLarge (1000000 sequences)
+   ASCII naive:       141.477 ms
+   ASCII NEON:        130.813 ms  (1.08× vs naive)
+   2-bit naive:       429.639 ms  (0.33× vs ASCII naive)
+   2-bit NEON:        423.205 ms  (1.02× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.31× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Huge (10000000 sequences)
+   ASCII naive:      2502.239 ms
+   ASCII NEON:       2745.680 ms  (0.91× vs naive)
+   2-bit naive:      5081.809 ms  (0.49× vs ASCII naive)
+   2-bit NEON:       4863.889 ms  (1.04× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.56× (2-bit NEON vs ASCII NEON)
+
+
+═══════════════════════════════════════════════════════════════
+🔢 Base Counting (Counting Operation)
+═══════════════════════════════════════════════════════════════
+
+Testing ASCII vs 2-bit encoding across scales...
+
+📦 Scale: Tiny (100 sequences)
+   ASCII naive:         0.083 ms
+   ASCII NEON:          0.006 ms  (14.02× vs naive)
+   2-bit naive:         0.024 ms  (3.46× vs ASCII naive)
+   2-bit NEON:          0.042 ms  (0.58× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.14× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Small (1000 sequences)
+   ASCII naive:         0.877 ms
+   ASCII NEON:          0.049 ms  (18.08× vs naive)
+   2-bit naive:         0.234 ms  (3.74× vs ASCII naive)
+   2-bit NEON:          0.125 ms  (1.88× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.39× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Medium (10000 sequences)
+   ASCII naive:         8.380 ms
+   ASCII NEON:          0.538 ms  (15.58× vs naive)
+   2-bit naive:         2.560 ms  (3.27× vs ASCII naive)
+   2-bit NEON:          1.329 ms  (1.93× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.40× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Large (100000 sequences)
+   ASCII naive:        85.909 ms
+   ASCII NEON:          5.436 ms  (15.80× vs naive)
+   2-bit naive:        25.695 ms  (3.34× vs ASCII naive)
+   2-bit NEON:         13.508 ms  (1.90× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.40× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: VeryLarge (1000000 sequences)
+   ASCII naive:       873.351 ms
+   ASCII NEON:         54.658 ms  (15.98× vs naive)
+   2-bit naive:       256.411 ms  (3.41× vs ASCII naive)
+   2-bit NEON:        133.134 ms  (1.93× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.41× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Huge (10000000 sequences)
+   ASCII naive:      8980.521 ms
+   ASCII NEON:        557.439 ms  (16.11× vs naive)
+   2-bit naive:      2796.810 ms  (3.21× vs ASCII naive)
+   2-bit NEON:       1369.411 ms  (2.04× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.41× (2-bit NEON vs ASCII NEON)
+
+
+═══════════════════════════════════════════════════════════════
+🧬 GC Content (Counting Operation - Specific Bases)
+═══════════════════════════════════════════════════════════════
+
+Testing ASCII vs 2-bit encoding across scales...
+
+📦 Scale: Tiny (100 sequences)
+   ASCII naive:         0.078 ms
+   ASCII NEON:          0.006 ms  (13.13× vs naive)
+   2-bit naive:         0.070 ms  (1.11× vs ASCII naive)
+   2-bit NEON:          0.015 ms  (4.76× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.40× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Small (1000 sequences)
+   ASCII naive:         0.733 ms
+   ASCII NEON:          0.050 ms  (14.79× vs naive)
+   2-bit naive:         0.686 ms  (1.07× vs ASCII naive)
+   2-bit NEON:          0.142 ms  (4.82× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.35× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Medium (10000 sequences)
+   ASCII naive:         7.257 ms
+   ASCII NEON:          0.473 ms  (15.34× vs naive)
+   2-bit naive:         6.711 ms  (1.08× vs ASCII naive)
+   2-bit NEON:          1.325 ms  (5.07× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.36× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Large (100000 sequences)
+   ASCII naive:        74.301 ms
+   ASCII NEON:          4.848 ms  (15.33× vs naive)
+   2-bit naive:        77.835 ms  (0.95× vs ASCII naive)
+   2-bit NEON:         13.739 ms  (5.67× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.35× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: VeryLarge (1000000 sequences)
+   ASCII naive:       726.277 ms
+   ASCII NEON:         46.897 ms  (15.49× vs naive)
+   2-bit naive:       673.484 ms  (1.08× vs ASCII naive)
+   2-bit NEON:        134.400 ms  (5.01× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.35× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Huge (10000000 sequences)
+   ASCII naive:      7341.778 ms
+   ASCII NEON:        469.042 ms  (15.65× vs naive)
+   2-bit naive:      6854.278 ms  (1.07× vs ASCII naive)
+   2-bit NEON:       1350.432 ms  (5.08× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.35× (2-bit NEON vs ASCII NEON)
+
+
+═══════════════════════════════════════════════════════════════
+🧬 AT Content (Counting Operation - Specific Bases)
+═══════════════════════════════════════════════════════════════
+
+Testing ASCII vs 2-bit encoding across scales...
+
+📦 Scale: Tiny (100 sequences)
+   ASCII naive:         0.052 ms
+   ASCII NEON:          0.004 ms  (12.64× vs naive)
+   2-bit naive:         0.056 ms  (0.92× vs ASCII naive)
+   2-bit NEON:          0.009 ms  (6.00× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.44× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Small (1000 sequences)
+   ASCII naive:         0.482 ms
+   ASCII NEON:          0.034 ms  (14.27× vs naive)
+   2-bit naive:         0.544 ms  (0.89× vs ASCII naive)
+   2-bit NEON:          0.089 ms  (6.10× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.38× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Medium (10000 sequences)
+   ASCII naive:         5.043 ms
+   ASCII NEON:          0.346 ms  (14.57× vs naive)
+   2-bit naive:         5.524 ms  (0.91× vs ASCII naive)
+   2-bit NEON:          0.867 ms  (6.37× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.40× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Large (100000 sequences)
+   ASCII naive:        49.257 ms
+   ASCII NEON:          3.376 ms  (14.59× vs naive)
+   2-bit naive:        54.360 ms  (0.91× vs ASCII naive)
+   2-bit NEON:          8.606 ms  (6.32× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.39× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: VeryLarge (1000000 sequences)
+   ASCII naive:       484.818 ms
+   ASCII NEON:         33.728 ms  (14.37× vs naive)
+   2-bit naive:       542.027 ms  (0.89× vs ASCII naive)
+   2-bit NEON:         85.686 ms  (6.33× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.39× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Huge (10000000 sequences)
+   ASCII naive:      4919.179 ms
+   ASCII NEON:        352.429 ms  (13.96× vs naive)
+   2-bit naive:      5724.166 ms  (0.86× vs ASCII naive)
+   2-bit NEON:        926.984 ms  (6.18× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.38× (2-bit NEON vs ASCII NEON)
+
+
+═══════════════════════════════════════════════════════════════
+📏 Sequence Length (Simple Operation)
+═══════════════════════════════════════════════════════════════
+
+Testing ASCII vs 2-bit encoding across scales...
+
+📦 Scale: Tiny (100 sequences)
+   ASCII naive:         0.002 ms
+   ASCII NEON:          0.000 ms  (5.09× vs naive)
+   2-bit naive:         0.000 ms  (8.02× vs ASCII naive)
+   2-bit NEON:          0.000 ms  (0.70× vs 2-bit naive)
+
+   🎯 Encoding benefit: 1.10× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Small (1000 sequences)
+   ASCII naive:         0.002 ms
+   ASCII NEON:          0.001 ms  (2.57× vs naive)
+   2-bit naive:         0.001 ms  (1.89× vs ASCII naive)
+   2-bit NEON:          0.001 ms  (1.27× vs 2-bit naive)
+
+   🎯 Encoding benefit: 0.93× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Medium (10000 sequences)
+   ASCII naive:         0.026 ms
+   ASCII NEON:          0.006 ms  (4.32× vs naive)
+   2-bit naive:         0.010 ms  (2.53× vs ASCII naive)
+   2-bit NEON:          0.005 ms  (2.32× vs 2-bit naive)
+
+   🎯 Encoding benefit: 1.36× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Large (100000 sequences)
+   ASCII naive:         0.118 ms
+   ASCII NEON:          0.079 ms  (1.49× vs naive)
+   2-bit naive:         0.053 ms  (2.22× vs ASCII naive)
+   2-bit NEON:          0.043 ms  (1.25× vs 2-bit naive)
+
+   🎯 Encoding benefit: 1.86× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: VeryLarge (1000000 sequences)
+   ASCII naive:         1.135 ms
+   ASCII NEON:          1.062 ms  (1.07× vs naive)
+   2-bit naive:         0.492 ms  (2.31× vs ASCII naive)
+   2-bit NEON:          0.470 ms  (1.05× vs 2-bit naive)
+
+   🎯 Encoding benefit: 2.26× (2-bit NEON vs ASCII NEON)
+
+📦 Scale: Huge (10000000 sequences)
+   ASCII naive:        13.771 ms
+   ASCII NEON:         12.861 ms  (1.07× vs naive)
+   2-bit naive:        52.694 ms  (0.26× vs ASCII naive)
+   2-bit NEON:          6.441 ms  (8.18× vs 2-bit naive)
+
+   🎯 Encoding benefit: 2.00× (2-bit NEON vs ASCII NEON)
+
+
+═══════════════════════════════════════════════════════════════
+✅ Phase 2 Encoding Experiments Complete
+═══════════════════════════════════════════════════════════════
+
+📊 Operations tested: 5 (2-bit compatible)
+⚠️  Note: 3 operations skipped (incompatible with 2-bit):
+   • quality_aggregation (requires quality scores)
+   • n_content (N bases encoded as A in 2-bit)
+   • complexity_score (character diversity changes)
+
+Next steps:
+1. Analyze encoding benefit patterns across operation types
+2. Document which operations benefit from 2-bit encoding
+3. Update Phase 2 findings with complete dataset

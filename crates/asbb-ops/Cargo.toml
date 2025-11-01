@@ -13,3 +13,11 @@ anyhow.workspace = true
 rayon.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+
+# GPU support (macOS only)
+[target.'cfg(target_os = "macos")'.dependencies]
+asbb-gpu = { path = "../asbb-gpu", optional = true }
+
+[features]
+default = []
+gpu = ["asbb-gpu"]

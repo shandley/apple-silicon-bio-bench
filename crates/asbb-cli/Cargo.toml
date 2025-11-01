@@ -13,6 +13,14 @@ asbb-ops = { path = "../asbb-ops" }
 asbb-explorer = { path = "../asbb-explorer" }
 anyhow.workspace = true
 clap.workspace = true
+core_affinity = "0.8"
+serde.workspace = true
+serde_json.workspace = true
+rand = "0.8"
+
+[features]
+default = []
+gpu = ["asbb-ops/gpu"]
 
 [[bin]]
 name = "asbb-pilot"
@@ -57,3 +65,31 @@ path = "src/pilot_length_filter.rs"
 [[bin]]
 name = "asbb-pilot-complexity"
 path = "src/pilot_complexity_score.rs"
+
+[[bin]]
+name = "asbb-pilot-2bit"
+path = "src/pilot_2bit.rs"
+
+[[bin]]
+name = "asbb-pilot-gpu"
+path = "src/pilot_gpu.rs"
+
+[[bin]]
+name = "asbb-pilot-gpu-revcomp"
+path = "src/pilot_gpu_revcomp.rs"
+
+[[bin]]
+name = "asbb-pilot-gpu-quality"
+path = "src/pilot_gpu_quality.rs"
+
+[[bin]]
+name = "asbb-pilot-gpu-complexity"
+path = "src/pilot_gpu_complexity.rs"
+
+[[bin]]
+name = "asbb-pilot-parallel"
+path = "src/pilot_parallel.rs"
+
+[[bin]]
+name = "test-sequence-masking"
+path = "src/test_sequence_masking.rs"

@@ -1,0 +1,489 @@
+# Level 1/2 Primitives Automated Harness Configuration
+# Generated: November 1, 2025
+# Purpose: Systematic testing of 20 operations × 25 configs × 6 scales
+
+[metadata]
+name = "Level 1/2 Primitives"
+description = "Cross-validation of Phase 1 rules with expanded operation set"
+version = "1.0.0"
+total_experiments = 3000
+target_completion = "3 weeks"
+
+# Dataset scales (6 scales: 100 → 10M sequences)
+[datasets]
+sequence_length = 150  # Fixed length for all experiments (Illumina-like)
+quality_encoding = "phred33"
+seed = 12345  # Reproducible data generation
+
+[[datasets.scales]]
+name = "tiny"
+sequences = 100
+description = "Tiny dataset for validation"
+
+[[datasets.scales]]
+name = "small"
+sequences = 1000
+description = "Small dataset"
+
+[[datasets.scales]]
+name = "medium"
+sequences = 10000
+description = "Medium dataset (GPU cliff threshold)"
+
+[[datasets.scales]]
+name = "large"
+sequences = 100000
+description = "Large dataset"
+
+[[datasets.scales]]
+name = "very_large"
+sequences = 1000000
+description = "Very large dataset"
+
+[[datasets.scales]]
+name = "huge"
+sequences = 10000000
+description = "Huge dataset (stress test)"
+
+# Operations (20 total: 10 existing + 10 new)
+[operations]
+
+# Existing operations from Phase 1
+[[operations.list]]
+name = "base_counting"
+category = "element_wise"
+complexity = 0.40
+implemented = true
+backends = ["naive", "neon"]
+
+[[operations.list]]
+name = "gc_content"
+category = "element_wise"
+complexity = 0.315
+implemented = true
+backends = ["naive", "neon"]
+
+[[operations.list]]
+name = "at_content"
+category = "element_wise"
+complexity = 0.35
+implemented = true
+backends = ["naive", "neon"]
+
+[[operations.list]]
+name = "reverse_complement"
+category = "element_wise"
+complexity = 0.45
+implemented = true
+backends = ["naive", "neon"]
+
+[[operations.list]]
+name = "sequence_length"
+category = "element_wise"
+complexity = 0.20
+implemented = true
+backends = ["naive", "neon"]
+
+[[operations.list]]
+name = "quality_aggregation"
+category = "aggregation"
+complexity = 0.50
+implemented = true
+backends = ["naive", "neon"]
+
+[[operations.list]]
+name = "complexity_score"
+category = "aggregation"
+complexity = 0.61
+implemented = true
+backends = ["naive", "neon", "gpu"]
+
+[[operations.list]]
+name = "quality_filter"
+category = "filtering"
+complexity = 0.55
+implemented = true
+backends = ["naive", "neon"]
+
+[[operations.list]]
+name = "length_filter"
+category = "filtering"
+complexity = 0.52
+implemented = true
+backends = ["naive", "neon"]
+
+[[operations.list]]
+name = "complexity_filter"
+category = "filtering"
+complexity = 0.58
+implemented = true
+backends = ["naive", "neon"]
+
+# New operations (to be implemented)
+[[operations.list]]
+name = "kmer_extraction"
+category = "search"
+complexity = 0.48
+implemented = false
+backends = ["naive", "neon"]
+description = "Extract all k-mers (k=21) from sequences"
+
+[[operations.list]]
+name = "kmer_counting"
+category = "search"
+complexity = 0.52
+implemented = false
+backends = ["naive", "neon"]
+description = "Count k-mer frequencies (k=21)"
+
+[[operations.list]]
+name = "hamming_distance"
+category = "pairwise"
+complexity = 0.35
+implemented = false
+backends = ["naive", "neon"]
+description = "Compute Hamming distance between sequence pairs"
+
+[[operations.list]]
+name = "edit_distance"
+category = "pairwise"
+complexity = 0.68
+implemented = false
+backends = ["naive"]
+description = "Compute edit distance (Levenshtein)"
+
+[[operations.list]]
+name = "sequence_masking"
+category = "element_wise"
+complexity = 0.30
+implemented = false
+backends = ["naive", "neon"]
+description = "Mask low-quality bases (Q<20) with 'N'"
+
+[[operations.list]]
+name = "translation"
+category = "element_wise"
+complexity = 0.42
+implemented = false
+backends = ["naive", "neon"]
+description = "Translate DNA to protein (6 frames)"
+
+[[operations.list]]
+name = "adapter_trimming"
+category = "filtering"
+complexity = 0.58
+implemented = false
+backends = ["naive", "neon"]
+description = "Detect and trim adapters (Illumina)"
+
+[[operations.list]]
+name = "quality_statistics"
+category = "aggregation"
+complexity = 0.38
+implemented = false
+backends = ["naive", "neon"]
+description = "Compute mean, median, Q1, Q3 per position"
+
+[[operations.list]]
+name = "minhash_sketching"
+category = "aggregation"
+complexity = 0.55
+implemented = false
+backends = ["naive"]
+description = "Generate MinHash sketch (k=21, sketch_size=1000)"
+
+[[operations.list]]
+name = "fastq_parsing"
+category = "io"
+complexity = 0.44
+implemented = false
+backends = ["naive"]
+description = "Parse FASTQ records (validation only)"
+
+# Hardware configurations (25 total)
+[hardware]
+
+# Baseline (1 config)
+[[hardware.configs]]
+id = "baseline"
+description = "Naive implementation, single-threaded"
+use_neon = false
+num_threads = 1
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+# NEON variants (4 configs)
+[[hardware.configs]]
+id = "neon_1t"
+description = "NEON SIMD, 1 thread"
+use_neon = true
+num_threads = 1
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "neon_2t"
+description = "NEON SIMD, 2 threads"
+use_neon = true
+num_threads = 2
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "neon_4t"
+description = "NEON SIMD, 4 threads"
+use_neon = true
+num_threads = 4
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "neon_8t"
+description = "NEON SIMD, 8 threads"
+use_neon = true
+num_threads = 8
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+# Parallel variants (3 configs)
+[[hardware.configs]]
+id = "parallel_2t"
+description = "Naive (no NEON), 2 threads"
+use_neon = false
+num_threads = 2
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "parallel_4t"
+description = "Naive (no NEON), 4 threads"
+use_neon = false
+num_threads = 4
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "parallel_8t"
+description = "Naive (no NEON), 8 threads"
+use_neon = false
+num_threads = 8
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+# Core assignment variants (6 configs)
+[[hardware.configs]]
+id = "pcores_1t"
+description = "P-cores only, 1 thread"
+use_neon = false
+num_threads = 1
+thread_assignment = "p_cores"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "pcores_4t"
+description = "P-cores only, 4 threads (max P-cores)"
+use_neon = false
+num_threads = 4
+thread_assignment = "p_cores"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "ecores_1t"
+description = "E-cores only, 1 thread"
+use_neon = false
+num_threads = 1
+thread_assignment = "e_cores"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "ecores_6t"
+description = "E-cores only, 6 threads (max E-cores)"
+use_neon = false
+num_threads = 6
+thread_assignment = "e_cores"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "mixed_2p2e"
+description = "Mixed cores, 2 P-cores + 2 E-cores"
+use_neon = false
+num_threads = 4
+thread_assignment = "mixed_2p2e"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "mixed_4p6e"
+description = "Mixed cores, 4 P-cores + 6 E-cores"
+use_neon = false
+num_threads = 10
+thread_assignment = "mixed_4p6e"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+# Encoding variants (2 configs)
+[[hardware.configs]]
+id = "2bit_naive"
+description = "2-bit encoding, naive (no NEON)"
+use_neon = false
+num_threads = 1
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = true
+
+[[hardware.configs]]
+id = "2bit_neon"
+description = "2-bit encoding, NEON SIMD"
+use_neon = true
+num_threads = 1
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = true
+
+# GPU variants (2 configs)
+[[hardware.configs]]
+id = "gpu_small_batch"
+description = "GPU Metal, small batch (1K sequences)"
+use_neon = false
+num_threads = 1
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = true
+gpu_batch_size = 1000
+use_2bit = false
+
+[[hardware.configs]]
+id = "gpu_large_batch"
+description = "GPU Metal, large batch (100K sequences)"
+use_neon = false
+num_threads = 1
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = true
+gpu_batch_size = 100000
+use_2bit = false
+
+# Combined optimization variants (7 configs)
+[[hardware.configs]]
+id = "neon_2bit_1t"
+description = "NEON + 2-bit encoding"
+use_neon = true
+num_threads = 1
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = true
+
+[[hardware.configs]]
+id = "neon_pcores_4t"
+description = "NEON + P-cores, 4 threads"
+use_neon = true
+num_threads = 4
+thread_assignment = "p_cores"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "neon_ecores_6t"
+description = "NEON + E-cores, 6 threads"
+use_neon = true
+num_threads = 6
+thread_assignment = "e_cores"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "neon_mixed_2p2e"
+description = "NEON + mixed cores (2P+2E)"
+use_neon = true
+num_threads = 4
+thread_assignment = "mixed_2p2e"
+encoding = "ascii"
+use_gpu = false
+use_2bit = false
+
+[[hardware.configs]]
+id = "neon_2bit_4t"
+description = "NEON + 2-bit + 4 threads"
+use_neon = true
+num_threads = 4
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = true
+
+[[hardware.configs]]
+id = "gpu_neon_fallback"
+description = "GPU with NEON fallback (small batches)"
+use_neon = true
+num_threads = 1
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = true
+gpu_batch_size = 1000
+use_2bit = false
+
+[[hardware.configs]]
+id = "optimal_all"
+description = "All optimizations (NEON + 8 threads + 2-bit)"
+use_neon = true
+num_threads = 8
+thread_assignment = "default"
+encoding = "ascii"
+use_gpu = false
+use_2bit = true
+
+# Execution settings
+[execution]
+parallel_experiments = 8  # Run 8 experiments concurrently
+checkpoint_interval = 100  # Checkpoint every 100 experiments
+timeout_seconds = 300  # 5 minute timeout per experiment
+warmup_runs = 2  # Warmup iterations (discard)
+measurement_runs = 5  # Measurement iterations (average)
+validate_correctness = true  # Validate output matches reference
+
+# Output settings
+[output]
+results_dir = "results/level1_primitives"
+parquet_file = "level1_primitives_complete.parquet"
+checkpoint_file = "checkpoint.json"
+log_file = "execution.log"
+progress_bar = true
+
+# Statistical analysis settings
+[analysis]
+train_test_split = 0.8  # 80% train, 20% test
+cross_validation_folds = 5
+confidence_level = 0.95
+target_prediction_accuracy = 0.80  # 80% within 20% error
+target_r_squared = 0.60  # For regression models

@@ -1,0 +1,165 @@
+   Compiling num_cpus v1.17.0
+   Compiling core_affinity v0.8.3
+   Compiling asbb-cli v0.1.0 (/Users/scotthandley/Code/apple-silicon-bio-bench/crates/asbb-cli)
+warning: method `description` is never used
+  --> crates/asbb-cli/src/pilot_parallel.rs:62:8
+   |
+53 | impl CoreAssignment {
+   | ------------------- method in this implementation
+...
+62 |     fn description(&self) -> &'static str {
+   |        ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: variants `Utility` and `UserInteractive` are never constructed
+   --> crates/asbb-cli/src/pilot_parallel.rs:378:5
+    |
+376 | enum ThreadQoS {
+    |      --------- variants in this enum
+377 |     Background,      // E-cores preferred
+378 |     Utility,         // E-cores likely
+    |     ^^^^^^^
+...
+381 |     UserInteractive, // P-cores strongly preferred
+    |     ^^^^^^^^^^^^^^^
+    |
+    = note: `ThreadQoS` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: `asbb-cli` (bin "asbb-pilot-parallel") generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 1.46s
+     Running `target/release/asbb-pilot-parallel`
+╔════════════════════════════════════════════════════════════════════╗
+║        Parallel/Threading Dimension Pilot - COMPREHENSIVE        ║
+║        Systematic Testing with Core Affinity                       ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🔬 Testing: 10 operations × 12 configurations × 6 scales = 720 experiments
+🎯 Goal: Identify optimal thread count and core assignment per operation
+📊 Thread counts: [1, 2, 4, 8]
+🖥️  Core assignments: Default, P-cores (QoS), E-cores (QoS)
+
+💡 Note: On macOS, explicit core pinning is limited.
+   We use QoS hints to influence P-core vs E-core scheduling:
+   - P-cores: QoS UserInitiated (high priority)
+   - E-cores: QoS Background (low priority)
+   - Default: QoS Default (let OS decide)
+
+📊 Validate with Activity Monitor:
+   1. Open Activity Monitor
+   2. View → CPU History
+   3. Watch which cores light up during execution
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: base_counting (complexity 0.40)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → Best: 2t/p_cores (1.55×)
+📦     Medium (   10000 seqs): → Best: 4t/p_cores (2.65×)
+📦      Large (  100000 seqs): → Best: 8t/default (4.69×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/e_cores (4.97×)
+📦       Huge (10000000 seqs): → Best: 8t/default (5.56×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: gc_content (complexity 0.32)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → Best: 2t/p_cores (1.49×)
+📦     Medium (   10000 seqs): → Best: 4t/p_cores (2.76×)
+📦      Large (  100000 seqs): → Best: 8t/default (4.80×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/default (5.20×)
+📦       Huge (10000000 seqs): → Best: 8t/default (5.36×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: at_content (complexity 0.35)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → Best: 2t/default (1.20×)
+📦     Medium (   10000 seqs): → Best: 4t/p_cores (2.62×)
+📦      Large (  100000 seqs): → Best: 8t/default (4.98×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/default (5.26×)
+📦       Huge (10000000 seqs): → Best: 8t/default (5.36×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: n_content (complexity 0.25)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → Best: 2t/p_cores (1.06×)
+📦     Medium (   10000 seqs): → Best: 4t/default (1.78×)
+📦      Large (  100000 seqs): → Best: 8t/default (3.06×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/default (3.72×)
+📦       Huge (10000000 seqs): → Best: 8t/p_cores (3.87×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: sequence_length (complexity 0.20)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → No parallel benefit
+📦     Medium (   10000 seqs): → No parallel benefit
+📦      Large (  100000 seqs): → Best: 2t/p_cores (1.38×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/p_cores (1.43×)
+📦       Huge (10000000 seqs): → Best: 8t/e_cores (2.30×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: reverse_complement (complexity 0.45)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → Best: 2t/default (1.46×)
+📦     Medium (   10000 seqs): → Best: 8t/p_cores (2.10×)
+📦      Large (  100000 seqs): → Best: 8t/p_cores (2.40×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/default (2.63×)
+📦       Huge (10000000 seqs): → Best: 8t/default (2.24×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: quality_aggregation (complexity 0.50)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → No parallel benefit
+📦     Medium (   10000 seqs): → Best: 2t/p_cores (1.86×)
+📦      Large (  100000 seqs): → Best: 8t/p_cores (3.17×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/p_cores (4.05×)
+📦       Huge (10000000 seqs): → Best: 8t/default (4.25×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: quality_filter (complexity 0.55)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → Best: 2t/p_cores (1.07×)
+📦     Medium (   10000 seqs): → Best: 2t/p_cores (1.81×)
+📦      Large (  100000 seqs): → Best: 8t/default (2.48×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/p_cores (3.76×)
+📦       Huge (10000000 seqs): → Best: 8t/default (4.07×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: length_filter (complexity 0.55)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → No parallel benefit
+📦      Small (    1000 seqs): → No parallel benefit
+📦     Medium (   10000 seqs): → No parallel benefit
+📦      Large (  100000 seqs): → Best: 2t/default (1.39×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/default (1.44×)
+📦       Huge (10000000 seqs): → Best: 8t/e_cores (1.48×)
+
+═══════════════════════════════════════════════════════════════
+🧬 Operation: complexity_score (complexity 0.61)
+═══════════════════════════════════════════════════════════════
+📦       Tiny (     100 seqs): → Best: 2t/p_cores (1.08×)
+📦      Small (    1000 seqs): → Best: 4t/p_cores (2.00×)
+📦     Medium (   10000 seqs): → Best: 8t/p_cores (4.61×)
+📦      Large (  100000 seqs): → Best: 8t/e_cores (5.86×)
+📦  VeryLarge ( 1000000 seqs): → Best: 8t/e_cores (6.10×)
+📦       Huge (10000000 seqs): → Best: 8t/default (5.73×)
+
+
+═══════════════════════════════════════════════════════════════
+✅ Parallel Dimension Pilot Complete - 720 experiments
+═══════════════════════════════════════════════════════════════
+
+📊 Output: CSV data to stdout
+💾 Save with: cargo run --release --bin asbb-pilot-parallel > results.csv
+
+Next steps:
+  1. Analyze CSV data
+  2. Generate speedup matrices
+  3. Document patterns
+  4. Derive decision rules

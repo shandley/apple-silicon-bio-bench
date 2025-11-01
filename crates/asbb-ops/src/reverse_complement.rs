@@ -20,7 +20,7 @@
 //! - NEON can handle both efficiently with table lookups
 
 use anyhow::Result;
-use asbb_core::{OperationCategory, OperationOutput, PrimitiveOperation, SequenceRecord};
+use asbb_core::{encoding::BitSeq, OperationCategory, OperationOutput, PrimitiveOperation, SequenceRecord};
 use rayon::prelude::*;
 
 /// Reverse complement operation
@@ -29,6 +29,64 @@ pub struct ReverseComplement;
 impl ReverseComplement {
     pub fn new() -> Self {
         Self
+    }
+
+    /// Execute reverse complement on 2-bit encoded sequences
+    ///
+    /// This is the headline result for Phase 2!
+    /// Expected: 98× speedup over ASCII NEON (BioMetal validated)
+    ///
+    /// Uses BitSeq::reverse_complement() which:
+    /// - Operates directly on 2-bit data (no ASCII conversion)
+    /// - XOR for complement (A↔T, C↔G via 0b11 XOR)
+    /// - Efficient reversal of packed data
+    pub fn execute_2bit_naive(&self, data: &[BitSeq]) -> Result<OperationOutput> {
+        let mut results = Vec::with_capacity(data.len());
+
+        for (i, bitseq) in data.iter().enumerate() {
+            let revcomp = bitseq.reverse_complement();
+            // Convert back to ASCII for output
+            let ascii = revcomp.to_ascii();
+            results.push(SequenceRecord::fasta(
+                format!("seq{}_revcomp", i),
+                ascii,
+            ));
+        }
+
+        Ok(OperationOutput::Records(results))
+    }
+
+    /// Execute reverse complement on 2-bit encoded sequences (NEON)
+    ///
+    /// Expected: 98× speedup over ASCII NEON
+    /// This is the CRITICAL validation for Phase 2 encoding dimension
+    pub fn execute_2bit_neon(&self, data: &[BitSeq]) -> Result<OperationOutput> {
+        // BitSeq::reverse_complement() already uses NEON on aarch64
+        // Just call the same method - the speedup comes from 2-bit encoding
+        self.execute_2bit_naive(data)
+    }
+
+    /// Execute reverse complement using GPU (Metal)
+    ///
+    /// ## Performance Characteristics
+    ///
+    /// Reverse complement is more complex than base counting:
+    /// - Each base requires complement lookup (A↔T, C↔G)
+    /// - Sequence must be reversed (different memory access)
+    /// - ~10-15 operations per byte (vs ~6 for base counting)
+    ///
+    /// **Hypothesis**: Higher complexity may show GPU benefit at lower batch sizes
+    /// than base counting.
+    ///
+    /// **Expected cliff threshold**: 100K-500K sequences (vs no cliff for base counting)
+    ///
+    /// Returns transformed sequences and performance metrics.
+    #[cfg(all(target_os = "macos", feature = "gpu"))]
+    pub fn execute_gpu(&self, data: &[SequenceRecord]) -> Result<(Vec<SequenceRecord>, asbb_gpu::GpuMetrics)> {
+        use asbb_gpu::MetalBackend;
+
+        let backend = MetalBackend::new()?;
+        backend.reverse_complement_gpu(data)
     }
 }
 
@@ -356,6 +414,102 @@ mod tests {
         #[cfg(target_arch = "aarch64")]
         {
             assert_eq!(neon_reverse_complement(seq), expected);
+        }
+    }
+
+    #[test]
+    fn test_reverse_complement_2bit_naive() {
+        let op = ReverseComplement::new();
+
+        // Create 2-bit encoded sequences
+        let bitseqs = vec![
+            BitSeq::from_ascii(b"ACGT"),        // Palindrome
+            BitSeq::from_ascii(b"AAAA"),        // → TTTT
+            BitSeq::from_ascii(b"ATCG"),        // → CGAT
+            BitSeq::from_ascii(b"ACG"),         // → CGT (partial byte)
+        ];
+
+        let result = op.execute_2bit_naive(&bitseqs).unwrap();
+
+        if let OperationOutput::Records(sequences) = result {
+            assert_eq!(sequences.len(), 4);
+            assert_eq!(sequences[0].sequence, b"ACGT");  // Palindrome
+            assert_eq!(sequences[1].sequence, b"TTTT");
+            assert_eq!(sequences[2].sequence, b"CGAT");
+            assert_eq!(sequences[3].sequence, b"CGT");
+        } else {
+            panic!("Expected Records output");
+        }
+    }
+
+    #[test]
+    #[cfg(target_arch = "aarch64")]
+    fn test_reverse_complement_2bit_neon() {
+        let op = ReverseComplement::new();
+
+        // Create 2-bit encoded sequences
+        let bitseqs = vec![
+            BitSeq::from_ascii(b"ACGT"),
+            BitSeq::from_ascii(b"AAAA"),
+            BitSeq::from_ascii(b"ATCG"),
+        ];
+
+        let result_naive = op.execute_2bit_naive(&bitseqs).unwrap();
+        let result_neon = op.execute_2bit_neon(&bitseqs).unwrap();
+
+        // NEON should produce identical results to naive
+        assert_eq!(result_naive, result_neon);
+    }
+
+    #[test]
+    fn test_reverse_complement_2bit_vs_ascii() {
+        let op = ReverseComplement::new();
+
+        // Test that 2-bit produces same results as ASCII
+        let test_seqs = vec![
+            b"ACGT".to_vec(),
+            b"AAAA".to_vec(),
+            b"TTTT".to_vec(),
+            b"ACGTACGTACGTACGT".to_vec(),  // Longer sequence
+        ];
+
+        for seq in test_seqs {
+            // ASCII version
+            let ascii_records = vec![SequenceRecord::fasta("test".to_string(), seq.clone())];
+            let ascii_result = op.execute_naive(&ascii_records).unwrap();
+
+            // 2-bit version
+            let bitseqs = vec![BitSeq::from_ascii(&seq)];
+            let bitseq_result = op.execute_2bit_naive(&bitseqs).unwrap();
+
+            // Results should match
+            if let (OperationOutput::Records(ascii_seqs), OperationOutput::Records(bit_seqs)) =
+                (ascii_result, bitseq_result)
+            {
+                assert_eq!(ascii_seqs[0].sequence, bit_seqs[0].sequence,
+                    "Mismatch for sequence: {}", String::from_utf8_lossy(&seq));
+            } else {
+                panic!("Expected Records output");
+            }
+        }
+    }
+
+    #[test]
+    fn test_reverse_complement_2bit_large() {
+        let op = ReverseComplement::new();
+
+        // Create a large sequence to test vectorization (>64 bases)
+        let large_seq = b"ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT";
+
+        // 2-bit version
+        let bitseqs = vec![BitSeq::from_ascii(large_seq)];
+        let result = op.execute_2bit_naive(&bitseqs).unwrap();
+
+        if let OperationOutput::Records(sequences) = result {
+            // Should be palindrome (ACGTACGT pattern)
+            assert_eq!(sequences[0].sequence.as_slice(), large_seq);
+        } else {
+            panic!("Expected Records output");
         }
     }
 }

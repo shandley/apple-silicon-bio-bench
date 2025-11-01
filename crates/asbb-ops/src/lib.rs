@@ -27,6 +27,7 @@ pub mod quality_aggregation;
 pub mod quality_filter;
 pub mod reverse_complement;
 pub mod sequence_length;
+pub mod sequence_masking;
 
 // Re-export common types
 pub use asbb_core::{

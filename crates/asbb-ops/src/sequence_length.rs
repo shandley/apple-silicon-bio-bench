@@ -19,7 +19,7 @@
 // - Data dependencies: 0.3 (accumulation only)
 
 use crate::PrimitiveOperation;
-use asbb_core::{HardwareConfig, OperationCategory, OperationOutput, SequenceRecord};
+use asbb_core::{encoding::BitSeq, HardwareConfig, OperationCategory, OperationOutput, SequenceRecord};
 use anyhow::Result;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -167,6 +167,34 @@ impl PrimitiveOperation for SequenceLength {
         } else {
             self.execute_naive(data)
         }
+    }
+}
+
+impl SequenceLength {
+    /// Execute with 2-bit encoded data (naive)
+    ///
+    /// Note: For sequence length, 2-bit encoding doesn't provide any speedup.
+    /// We're just measuring the overhead of the encoding itself.
+    pub fn execute_2bit_naive(&self, data: &[BitSeq]) -> Result<OperationOutput> {
+        let mut result = SequenceLengthResult::new();
+
+        for bitseq in data {
+            let len = bitseq.len();
+            result.total_length += len;
+            result.num_sequences += 1;
+            result.min_length = result.min_length.min(len);
+            result.max_length = result.max_length.max(len);
+        }
+
+        result.finalize();
+        Ok(OperationOutput::Statistics(serde_json::to_value(result)?))
+    }
+
+    /// Execute with 2-bit encoded data (NEON)
+    ///
+    /// Note: Identical to naive for this operation - no SIMD benefit for length
+    pub fn execute_2bit_neon(&self, data: &[BitSeq]) -> Result<OperationOutput> {
+        self.execute_2bit_naive(data)
     }
 }
 

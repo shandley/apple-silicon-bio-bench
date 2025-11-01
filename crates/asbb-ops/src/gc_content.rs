@@ -17,7 +17,7 @@
 //! Very similar to base counting - expect similar patterns.
 
 use anyhow::Result;
-use asbb_core::{OperationCategory, OperationOutput, PrimitiveOperation, SequenceRecord};
+use asbb_core::{encoding::BitSeq, OperationCategory, OperationOutput, PrimitiveOperation, SequenceRecord};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +27,62 @@ pub struct GcContent;
 impl GcContent {
     pub fn new() -> Self {
         Self
+    }
+
+    /// Execute GC content on 2-bit encoded sequences (naive)
+    pub fn execute_2bit_naive(&self, data: &[BitSeq]) -> Result<OperationOutput> {
+        let mut result = GcResult::new();
+
+        for bitseq in data {
+            result.total_bases += bitseq.len();
+
+            // Use BitSeq's scalar counting methods (accumulate!)
+            result.count_g += bitseq.count_base(b'G');
+            result.count_c += bitseq.count_base(b'C');
+            result.count_at += bitseq.count_at();
+            // N not representable in 2-bit
+            result.count_n = 0;
+        }
+
+        result.finalize();
+        Ok(OperationOutput::Statistics(
+            serde_json::to_value(result)?,
+        ))
+    }
+
+    /// Execute GC content on 2-bit encoded sequences (NEON)
+    ///
+    /// Expected: 1.2-1.5× speedup over ASCII NEON due to:
+    /// - 4× data density (better cache utilization)
+    /// - Same NEON operations, but on more compact data
+    pub fn execute_2bit_neon(&self, data: &[BitSeq]) -> Result<OperationOutput> {
+        #[cfg(target_arch = "aarch64")]
+        {
+            let mut result = GcResult::new();
+
+            for bitseq in data {
+                result.total_bases += bitseq.len();
+
+                // Count using NEON on 2-bit packed data
+                let gc_counts = count_gc_2bit_neon(bitseq);
+                result.count_g += gc_counts.count_g;
+                result.count_c += gc_counts.count_c;
+                result.count_at += gc_counts.count_at;
+                // N not representable in 2-bit
+                result.count_n = 0;
+            }
+
+            result.finalize();
+            Ok(OperationOutput::Statistics(
+                serde_json::to_value(result)?,
+            ))
+        }
+
+        #[cfg(not(target_arch = "aarch64"))]
+        {
+            // Fall back to naive on non-ARM
+            self.execute_2bit_naive(data)
+        }
     }
 }
 
@@ -303,6 +359,107 @@ unsafe fn horizontal_sum_u8(v: std::arch::aarch64::uint8x16_t) -> usize {
     sum as usize
 }
 
+/// Count GC bases in 2-bit encoded data using NEON
+///
+/// 2-bit encoding: A=00, C=01, G=10, T=11
+/// GC bases: C=01, G=10 (both have exactly one bit set)
+///
+/// Expected speedup: 1.2-1.5× over ASCII NEON
+/// - Same NEON operations, but 4× data density
+/// - Better cache utilization
+#[cfg(target_arch = "aarch64")]
+fn count_gc_2bit_neon(bitseq: &BitSeq) -> GcResult {
+    use std::arch::aarch64::*;
+
+    let mut result = GcResult::new();
+    result.total_bases = bitseq.len();
+
+    let data = bitseq.data();
+
+    // Process 16 bytes at a time (16 bytes = 64 bases)
+    let chunks = data.chunks_exact(16);
+    let remainder_bytes = chunks.remainder();
+
+    unsafe {
+        // Accumulators for each base type
+        let mut vec_count_g = vdupq_n_u8(0);
+        let mut vec_count_c = vdupq_n_u8(0);
+        let mut vec_count_at = vdupq_n_u8(0);
+
+        // Masks for extracting 2-bit pairs
+        let mask_bits_67 = vdupq_n_u8(0b11000000);
+        let mask_bits_45 = vdupq_n_u8(0b00110000);
+        let mask_bits_23 = vdupq_n_u8(0b00001100);
+        let mask_bits_01 = vdupq_n_u8(0b00000011);
+
+        // Comparison values
+        let cmp_c = vdupq_n_u8(0b01); // C = 01
+        let cmp_g = vdupq_n_u8(0b10); // G = 10
+        let cmp_a = vdupq_n_u8(0b00); // A = 00
+        let cmp_t = vdupq_n_u8(0b11); // T = 11
+
+        let ones = vdupq_n_u8(1);
+
+        for chunk in chunks {
+            // Load 16 bytes (64 bases)
+            let data_vec = vld1q_u8(chunk.as_ptr());
+
+            // Process each 2-bit position
+            // Position 0 (bits 6-7)
+            let bases_0 = vshrq_n_u8(vandq_u8(data_vec, mask_bits_67), 6);
+            vec_count_c = vaddq_u8(vec_count_c, vandq_u8(vceqq_u8(bases_0, cmp_c), ones));
+            vec_count_g = vaddq_u8(vec_count_g, vandq_u8(vceqq_u8(bases_0, cmp_g), ones));
+            let mask_at_0 = vorrq_u8(vceqq_u8(bases_0, cmp_a), vceqq_u8(bases_0, cmp_t));
+            vec_count_at = vaddq_u8(vec_count_at, vandq_u8(mask_at_0, ones));
+
+            // Position 1 (bits 4-5)
+            let bases_1 = vshrq_n_u8(vandq_u8(data_vec, mask_bits_45), 4);
+            vec_count_c = vaddq_u8(vec_count_c, vandq_u8(vceqq_u8(bases_1, cmp_c), ones));
+            vec_count_g = vaddq_u8(vec_count_g, vandq_u8(vceqq_u8(bases_1, cmp_g), ones));
+            let mask_at_1 = vorrq_u8(vceqq_u8(bases_1, cmp_a), vceqq_u8(bases_1, cmp_t));
+            vec_count_at = vaddq_u8(vec_count_at, vandq_u8(mask_at_1, ones));
+
+            // Position 2 (bits 2-3)
+            let bases_2 = vshrq_n_u8(vandq_u8(data_vec, mask_bits_23), 2);
+            vec_count_c = vaddq_u8(vec_count_c, vandq_u8(vceqq_u8(bases_2, cmp_c), ones));
+            vec_count_g = vaddq_u8(vec_count_g, vandq_u8(vceqq_u8(bases_2, cmp_g), ones));
+            let mask_at_2 = vorrq_u8(vceqq_u8(bases_2, cmp_a), vceqq_u8(bases_2, cmp_t));
+            vec_count_at = vaddq_u8(vec_count_at, vandq_u8(mask_at_2, ones));
+
+            // Position 3 (bits 0-1)
+            let bases_3 = vandq_u8(data_vec, mask_bits_01);
+            vec_count_c = vaddq_u8(vec_count_c, vandq_u8(vceqq_u8(bases_3, cmp_c), ones));
+            vec_count_g = vaddq_u8(vec_count_g, vandq_u8(vceqq_u8(bases_3, cmp_g), ones));
+            let mask_at_3 = vorrq_u8(vceqq_u8(bases_3, cmp_a), vceqq_u8(bases_3, cmp_t));
+            vec_count_at = vaddq_u8(vec_count_at, vandq_u8(mask_at_3, ones));
+        }
+
+        // Horizontal sum to get total counts
+        result.count_g = horizontal_sum_u8(vec_count_g);
+        result.count_c = horizontal_sum_u8(vec_count_c);
+        result.count_at = horizontal_sum_u8(vec_count_at);
+    }
+
+    // Process remainder bytes with scalar code
+    let num_full_bytes = data.len() - remainder_bytes.len();
+    let bases_in_full_bytes = num_full_bytes * 4;
+
+    for i in bases_in_full_bytes..bitseq.len() {
+        let byte_idx = i / 4;
+        let bit_offset = 6 - (i % 4) * 2;
+        let encoded = (data[byte_idx] >> bit_offset) & 0b11;
+
+        match encoded {
+            0b00 | 0b11 => result.count_at += 1, // A or T
+            0b01 => result.count_c += 1,         // C
+            0b10 => result.count_g += 1,         // G
+            _ => unreachable!(),
+        }
+    }
+
+    result
+}
+
 // ============================================================================
 // Tests
 // ============================================================================
@@ -412,6 +569,77 @@ mod tests {
             assert!((gc.gc_percent - 0.0).abs() < 0.01);
         } else {
             panic!("Expected Statistics output");
+        }
+    }
+
+    #[test]
+    fn test_gc_content_2bit_naive() {
+        let op = GcContent::new();
+
+        // Create 2-bit encoded sequences
+        let bitseqs = vec![
+            BitSeq::from_ascii(b"ACGTACGT"),    // 4 AT, 4 GC
+            BitSeq::from_ascii(b"GGGGCCCC"),    // 0 AT, 8 GC
+            BitSeq::from_ascii(b"AAAATTTT"),    // 8 AT, 0 GC
+        ];
+
+        let result = op.execute_2bit_naive(&bitseqs).unwrap();
+
+        if let OperationOutput::Statistics(value) = result {
+            let gc: GcResult = serde_json::from_value(value).unwrap();
+
+            assert_eq!(gc.count_g, 6);
+            assert_eq!(gc.count_c, 6);
+            assert_eq!(gc.count_gc, 12);
+            assert_eq!(gc.count_at, 12);
+            assert_eq!(gc.count_n, 0); // N not representable in 2-bit
+            assert_eq!(gc.total_bases, 24);
+
+            // (12 GC / 24 total) * 100 = 50%
+            assert!((gc.gc_percent - 50.0).abs() < 0.01);
+        } else {
+            panic!("Expected Statistics output");
+        }
+    }
+
+    #[test]
+    #[cfg(target_arch = "aarch64")]
+    fn test_gc_content_2bit_neon() {
+        let op = GcContent::new();
+
+        // Create 2-bit encoded sequences
+        let bitseqs = vec![
+            BitSeq::from_ascii(b"ACGTACGT"),
+            BitSeq::from_ascii(b"GGGGCCCC"),
+            BitSeq::from_ascii(b"AAAATTTT"),
+        ];
+
+        let result_naive = op.execute_2bit_naive(&bitseqs).unwrap();
+        let result_neon = op.execute_2bit_neon(&bitseqs).unwrap();
+
+        // NEON should produce identical results to naive
+        assert_eq!(result_naive, result_neon);
+    }
+
+    #[test]
+    #[cfg(target_arch = "aarch64")]
+    fn test_gc_content_2bit_neon_large() {
+        let op = GcContent::new();
+
+        // Create a large sequence to test vectorization (>64 bases)
+        let large_seq = b"ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT";
+        let bitseqs = vec![BitSeq::from_ascii(large_seq)];
+
+        let result_naive = op.execute_2bit_naive(&bitseqs).unwrap();
+        let result_neon = op.execute_2bit_neon(&bitseqs).unwrap();
+
+        // NEON should produce identical results to naive
+        assert_eq!(result_naive, result_neon);
+
+        // Verify GC content is 50% (ACGTACGT pattern)
+        if let OperationOutput::Statistics(value) = result_neon {
+            let gc: GcResult = serde_json::from_value(value).unwrap();
+            assert!((gc.gc_percent - 50.0).abs() < 0.01);
         }
     }
 }

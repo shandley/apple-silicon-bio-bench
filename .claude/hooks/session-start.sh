@@ -49,7 +49,66 @@ if [ -d "lab-notebook" ]; then
     if [ ! -f "lab-notebook/INDEX.md" ]; then
         echo ""
         echo "⚠️  INDEX.md not found - should be created"
+    else
+        # Check if INDEX.md is current
+        index_date=$(grep "Last Updated" lab-notebook/INDEX.md | head -1 | grep -oE "[0-9]{4}-[0-9]{2}-[0-9]{2}" || echo "unknown")
+        current_date=$(date +%Y-%m-%d)
+
+        if [ "$index_date" != "$current_date" ] && [ "$index_date" != "unknown" ]; then
+            days_old=$(( ($(date +%s) - $(date -j -f "%Y-%m-%d" "$index_date" +%s)) / 86400 ))
+            if [ $days_old -gt 2 ]; then
+                echo ""
+                echo "⚠️  INDEX.md may be stale (last updated: $index_date, $days_old days ago)"
+                echo "   Review if recent work needs to be added"
+            fi
+        fi
     fi
+
+    # ========================================================================
+    # SYNC CHECK: Detect undocumented experimental results
+    # ========================================================================
+
+    # Count results files modified in last 3 days that might not be in lab notebook
+    recent_results=$(find results -name "*.md" -mtime -3 2>/dev/null | wc -l | xargs)
+
+    if [ $recent_results -gt 0 ]; then
+        # Check if we have recent lab notebook entries
+        recent_lab=$(find lab-notebook -name "*.md" ! -name "INDEX.md" -mtime -3 2>/dev/null | wc -l | xargs)
+
+        if [ $recent_lab -eq 0 ] && [ $recent_results -gt 0 ]; then
+            echo ""
+            echo "🚨 DOCUMENTATION SYNC WARNING"
+            echo "   Found $recent_results results file(s) modified in last 3 days"
+            echo "   But NO lab notebook entries in same period"
+            echo ""
+            echo "   Recent results files:"
+            find results -name "*.md" -mtime -3 2>/dev/null | head -5 | while read file; do
+                echo "      • $(basename "$file")"
+            done
+            if [ $recent_results -gt 5 ]; then
+                echo "      ... and $(($recent_results - 5)) more"
+            fi
+            echo ""
+            echo "   ⚠️  All experimental work should have lab notebook entries"
+            echo "   Consider backfilling missing entries if this represents real experiments"
+            echo ""
+        fi
+    fi
+
+    # Check for uncommitted lab notebook entries
+    if [ -d ".git" ]; then
+        uncommitted_entries=$(git status --porcelain 2>/dev/null | grep "^[AM]. lab-notebook/.*\.md$" | grep -v "INDEX.md" | wc -l | xargs)
+        if [ $uncommitted_entries -gt 0 ]; then
+            echo ""
+            echo "📝 UNCOMMITTED LAB NOTEBOOK ENTRIES: $uncommitted_entries"
+            echo "   Remember to commit lab notebook entries when work is complete"
+            git status --porcelain 2>/dev/null | grep "^[AM]. lab-notebook/.*\.md$" | grep -v "INDEX.md" | while read status file; do
+                echo "      • $(basename "$file")"
+            done
+            echo ""
+        fi
+    fi
+
 else
     echo "   ⚠️  Lab notebook directory not found"
 fi

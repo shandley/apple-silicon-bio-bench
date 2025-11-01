@@ -1,14 +1,116 @@
 #!/bin/bash
-# Git Pre-Commit Hook: Validate lab notebook entries
-# This is a backstop validation that runs before git commit
+# Git Pre-Commit Hook: Validate lab notebook entries and enforce documentation
+# This is a critical enforcement mechanism to prevent documentation fragmentation
 
 echo "🔬 Lab Notebook Pre-Commit Validation"
+
+# ============================================================================
+# CRITICAL CHECK 1: Detect experimental results without lab notebook entries
+# ============================================================================
+
+# Check for new or modified results/*.md files (dimension results, findings, etc.)
+staged_results=$(git diff --cached --name-only --diff-filter=AM | grep "^results/.*\.md$" | grep -vE "archive/|phase1/|phase2/")
+
+if [ -n "$staged_results" ]; then
+    echo ""
+    echo "⚠️  EXPERIMENTAL RESULTS DETECTED IN results/"
+    echo ""
+    for file in $staged_results; do
+        echo "   📄 $(basename "$file")"
+    done
+    echo ""
+    echo "   🚨 POLICY: All experimental work MUST have a lab notebook entry first"
+    echo ""
+    echo "   Required workflow:"
+    echo "   1. Create lab-notebook/YYYY-MM/YYYYMMDD-NNN-EXPERIMENT-name.md"
+    echo "   2. Document experiment in lab notebook entry"
+    echo "   3. Reference detailed analysis in results/ from lab notebook"
+    echo "   4. Update lab-notebook/INDEX.md"
+    echo "   5. THEN commit both together"
+    echo ""
+    echo "   Exception: Files in results/archive/, results/phase1/, results/phase2/"
+    echo "              (organized results docs) are allowed if referenced from lab notebook"
+    echo ""
+
+    # Check if there's a corresponding lab notebook entry being committed
+    today=$(date +%Y%m%d)
+    yesterday=$(date -v-1d +%Y%m%d)
+    recent_lab_entries=$(git diff --cached --name-only --diff-filter=AM | grep -E "lab-notebook/.*/(${today}|${yesterday})-.*\.md$" | grep -v "INDEX.md")
+
+    if [ -z "$recent_lab_entries" ]; then
+        echo "   ❌ ERROR: No recent lab notebook entry found in this commit"
+        echo ""
+        echo "   Please create a lab notebook entry for this experimental work."
+        echo "   See existing entries in lab-notebook/2025-10/ for examples."
+        echo ""
+        exit 1
+    else
+        echo "   ✅ Found recent lab notebook entry:"
+        for entry in $recent_lab_entries; do
+            echo "      • $(basename "$entry")"
+        done
+        echo ""
+        echo "   ⚠️  Verify that results files are referenced in the lab notebook entry"
+        echo ""
+    fi
+fi
+
+# ============================================================================
+# CRITICAL CHECK 2: Validate INDEX.md is updated for new entries
+# ============================================================================
+
+# Check for new lab notebook entries
+new_lab_entries=$(git diff --cached --name-only --diff-filter=A | grep "^lab-notebook/.*\.md$" | grep -v "INDEX.md" | grep -v "raw-data/")
+
+if [ -n "$new_lab_entries" ]; then
+    echo ""
+    echo "📝 NEW LAB NOTEBOOK ENTRIES DETECTED"
+    echo ""
+
+    # Check if INDEX.md is being updated
+    if ! git diff --cached --name-only | grep -q "^lab-notebook/INDEX.md$"; then
+        echo "   ❌ ERROR: New lab notebook entries but INDEX.md not updated"
+        echo ""
+        echo "   New entries:"
+        for entry in $new_lab_entries; do
+            echo "      • $(basename "$entry")"
+        done
+        echo ""
+        echo "   Please update lab-notebook/INDEX.md to include these entries:"
+        echo "   1. Add entry to chronological log"
+        echo "   2. Update Quick Stats (Total Entries, Experiments Run)"
+        echo "   3. Update Pattern Validation if applicable"
+        echo "   4. Update Version History"
+        echo ""
+        echo "   Then stage INDEX.md: git add lab-notebook/INDEX.md"
+        echo ""
+        exit 1
+    else
+        echo "   ✅ INDEX.md is being updated"
+
+        # Verify entries are actually in INDEX.md
+        for entry in $new_lab_entries; do
+            entry_id=$(basename "$entry" .md)
+            if git show :lab-notebook/INDEX.md 2>/dev/null | grep -q "$entry_id"; then
+                echo "      ✅ $entry_id found in INDEX.md"
+            else
+                echo "      ⚠️  WARNING: $entry_id not found in staged INDEX.md"
+                echo "         Make sure you added it to the Entry Log section"
+            fi
+        done
+        echo ""
+    fi
+fi
+
+# ============================================================================
+# VALIDATION: Lab notebook entries follow conventions
+# ============================================================================
 
 # Check for new or modified markdown files in lab-notebook/ (exclude raw-data and INDEX.md)
 staged_lab_files=$(git diff --cached --name-only --diff-filter=AM | grep "^lab-notebook/.*\.md$" | grep -v "INDEX.md" | grep -v "raw-data/")
 
 if [ -z "$staged_lab_files" ]; then
-    # No lab notebook files staged, exit cleanly
+    # No lab notebook files staged, but we already checked for results above
     exit 0
 fi
 
