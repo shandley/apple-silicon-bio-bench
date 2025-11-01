@@ -108,97 +108,97 @@ backends = ["naive", "neon"]
 [[operations.list]]
 name = "length_filter"
 category = "filtering"
-complexity = 0.52
+complexity = 0.25
 implemented = true
-backends = ["naive", "neon"]
+backends = ["naive", "neon", "parallel"]
 
 [[operations.list]]
-name = "complexity_filter"
+name = "n_content"
+category = "aggregation"
+complexity = 0.38
+implemented = true
+backends = ["naive", "neon", "parallel"]
+
+# Level 1/2 operations (ALL IMPLEMENTED Nov 1, 2025)
+[[operations.list]]
+name = "sequence_masking"
 category = "filtering"
-complexity = 0.58
+complexity = 0.30
 implemented = true
-backends = ["naive", "neon"]
-
-# New operations (to be implemented)
-[[operations.list]]
-name = "kmer_extraction"
-category = "search"
-complexity = 0.48
-implemented = false
-backends = ["naive", "neon"]
-description = "Extract all k-mers (k=21) from sequences"
-
-[[operations.list]]
-name = "kmer_counting"
-category = "search"
-complexity = 0.52
-implemented = false
-backends = ["naive", "neon"]
-description = "Count k-mer frequencies (k=21)"
+backends = ["naive", "neon", "parallel"]
+description = "Mask low-quality bases (Q<20) with 'N'"
 
 [[operations.list]]
 name = "hamming_distance"
 category = "pairwise"
 complexity = 0.35
-implemented = false
-backends = ["naive", "neon"]
+implemented = true
+backends = ["naive", "neon", "parallel"]
 description = "Compute Hamming distance between sequence pairs"
-
-[[operations.list]]
-name = "edit_distance"
-category = "pairwise"
-complexity = 0.68
-implemented = false
-backends = ["naive"]
-description = "Compute edit distance (Levenshtein)"
-
-[[operations.list]]
-name = "sequence_masking"
-category = "element_wise"
-complexity = 0.30
-implemented = false
-backends = ["naive", "neon"]
-description = "Mask low-quality bases (Q<20) with 'N'"
-
-[[operations.list]]
-name = "translation"
-category = "element_wise"
-complexity = 0.42
-implemented = false
-backends = ["naive", "neon"]
-description = "Translate DNA to protein (6 frames)"
-
-[[operations.list]]
-name = "adapter_trimming"
-category = "filtering"
-complexity = 0.58
-implemented = false
-backends = ["naive", "neon"]
-description = "Detect and trim adapters (Illumina)"
 
 [[operations.list]]
 name = "quality_statistics"
 category = "aggregation"
 complexity = 0.38
-implemented = false
-backends = ["naive", "neon"]
+implemented = true
+backends = ["naive", "neon", "parallel"]
 description = "Compute mean, median, Q1, Q3 per position"
+
+[[operations.list]]
+name = "translation"
+category = "element_wise"
+complexity = 0.40
+implemented = true
+backends = ["naive", "neon", "parallel"]
+description = "Translate DNA to protein (standard genetic code)"
+
+[[operations.list]]
+name = "kmer_extraction"
+category = "search"
+complexity = 0.35
+implemented = true
+backends = ["naive", "neon", "parallel"]
+description = "Extract all k-mers (k=21) from sequences"
+
+[[operations.list]]
+name = "kmer_counting"
+category = "search"
+complexity = 0.45
+implemented = true
+backends = ["naive", "neon", "parallel"]
+description = "Count k-mer frequencies (k=21)"
 
 [[operations.list]]
 name = "minhash_sketching"
 category = "aggregation"
-complexity = 0.55
-implemented = false
-backends = ["naive"]
+complexity = 0.48
+implemented = true
+backends = ["naive", "neon", "parallel"]
 description = "Generate MinHash sketch (k=21, sketch_size=1000)"
+
+[[operations.list]]
+name = "adapter_trimming"
+category = "filtering"
+complexity = 0.55
+implemented = true
+backends = ["naive", "neon", "parallel"]
+description = "Detect and trim adapters (Illumina-like patterns)"
+
+[[operations.list]]
+name = "edit_distance"
+category = "pairwise"
+complexity = 0.70
+implemented = true
+backends = ["naive", "neon", "parallel"]
+description = "Compute edit distance (Levenshtein, Wagner-Fischer algorithm)"
 
 [[operations.list]]
 name = "fastq_parsing"
 category = "io"
-complexity = 0.44
-implemented = false
-backends = ["naive"]
-description = "Parse FASTQ records (validation only)"
+complexity = 0.25
+implemented = true
+backends = ["naive", "neon", "parallel"]
+description = "Parse FASTQ records (4-line format, quality validation)"
 
 # Hardware configurations (25 total)
 [hardware]
