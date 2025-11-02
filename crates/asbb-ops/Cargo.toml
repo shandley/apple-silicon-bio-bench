@@ -25,6 +25,7 @@ asbb-gpu = { path = "../asbb-gpu", optional = true }
 # Accelerate framework for AMX support (macOS only)
 [target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
 accelerate-src = "0.3"
+dispatch.workspace = true  # Grand Central Dispatch for GCD/QoS pilot
 
 [features]
 default = []

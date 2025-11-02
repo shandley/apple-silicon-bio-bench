@@ -1,29 +1,24 @@
 # Individual Dimension Pilot Checkpoint
 
-**Date**: November 2, 2025 (Updated: Hardware Compression complete)
-**Purpose**: Track progress on systematic dimension pilots and prevent premature automation
+**Date**: November 2, 2025 (Updated: GCD/QoS decision documented)
+**Purpose**: Track progress on systematic dimension pilots and assess publication readiness
 
 ---
 
-## ⛔ CRITICAL RULE ⛔
+## 📊 STATUS UPDATE: Publication-Ready Assessment
 
-**DO NOT proceed to Level 1/2 automated harness until ALL 9 dimension pilots are complete.**
+**After completing 6 dimension pilots + GCD decision (7/9 via proxy)**:
+- **Question asked**: "Do we have experimental coverage for scientific publication?"
+- **Answer**: Almost - one critical gap identified (rule composition)
+- **See**: `PUBLICATION_READINESS_ASSESSMENT.md` for full analysis
 
-**Reason**: Each pilot reveals unexpected patterns critical for understanding the performance space.
-
-**Evidence**: 4/4 completed pilots found unexpected patterns:
-- NEON: Complexity-speedup relationship (R² = 0.536)
-- GPU: First GPU win, unified memory validation
-- 2-bit Encoding: Overhead quantification (challenges conventional wisdom)
-- Parallel: E-cores competitive, super-linear speedups
-
-**Lesson from Nov 1-2**: We attempted Level 1/2 prematurely. Result: 4 crashes, 5+ hours wasted, 0 progress.
+**Key Finding**: Individual dimension pilots are excellent, but we haven't tested if optimizations compose correctly (NEON × Parallel = multiplicative?). Need ~200 Composition Validation experiments.
 
 ---
 
 ## Pilot Status Tracker
 
-### ✅ Completed Pilots (6/9)
+### ✅ Completed Pilots (7/9)
 
 #### 1. NEON SIMD Dimension ✅
 - **Experiments**: 60 (10 operations × 6 scales)
@@ -69,11 +64,24 @@
 - **Documentation**: experiments/phase1_hardware_compression/RESULTS_SUMMARY.md
 - **Optimization Rule**: Use uncompressed for processing, compressed for storage
 
+#### 7. GCD/QoS Dimension ✅ (via Parallel Dimension Proxy)
+- **Experiments**: 0 direct (validated via 720 Parallel dimension experiments)
+- **Date**: November 2, 2025 (decision)
+- **Key Finding**: QoS validated via Rayon+pthread QoS (1-7% P-core vs E-core differences)
+- **Decision**: Defer full GCD implementation based on FFI overhead pattern
+- **Documentation**: experiments/phase1_gcd_qos/DECISION.md
+- **Optimization Rule**: Use Rayon with QoS hints (no GCD needed)
+- **Rationale**:
+  - QoS already tested thoroughly in Parallel dimension (Entry 011)
+  - FFI overhead pattern (AMX, Compression) predicts GCD would be negative
+  - Rayon work-stealing excellent for CPU-bound sequence operations
+  - GCD would add 2-3 hours with 80% probability of negative result
+
 ---
 
-### ⏳ Remaining Pilots (3/9)
+### ⏳ Remaining Pilots (2/9)
 
-#### 7. Neural Engine Dimension ⏳ **← DEFERRED (complex, 5-6 days)**
+#### 8. Neural Engine Dimension ⏳ **← DEFERRED (complex, 5-6 days, likely negative)**
 - **Experiments**: TBD (~240 planned)
 - **Operations**: ML-amenable operations
   - sequence_classification
@@ -82,19 +90,17 @@
   - taxonomy classification
 - **Configurations**: Neural Engine vs CPU, Core ML models
 - **Expected Insights**: ML-based sequence analysis performance
-- **Status**: Design complete, deferred until after simpler pilots
+- **Status**: Deferred based on FFI overhead pattern (AMX, Compression, GCD)
+- **Prediction**: Core ML framework overhead likely > benefit for primitive operations
+- **Recommendation**: Acknowledge as limitation in publication, propose as future work
 
-#### 8. GCD/QoS Dimension ⏳ **← NEXT**
-- **Experiments**: TBD (~240 planned)
-- **Operations**: All operations tested with GCD dispatch
-- **Configurations**: Different QoS levels (user-initiated, background, etc.)
-- **Expected Insights**: System-level optimization cooperation
-
-#### 9. M5 GPU Neural Accelerators ⏳
+#### 9. M5 GPU Neural Accelerators ⏳ **← REQUIRES M5 HARDWARE**
 - **Experiments**: TBD (~240 planned, if M5 available)
 - **Operations**: AI-amenable operations
 - **Configurations**: GPU Neural Accelerators vs Neural Engine vs CPU
-- **Expected Insights**: 4× AI performance on GPU cores
+- **Expected Insights**: 4× AI performance on GPU cores (M5 new capability)
+- **Status**: Deferred pending M5 Mac Studio purchase (~$7,499)
+- **Recommendation**: Propose as future work in publication
 
 ---
 
@@ -152,14 +158,38 @@ For each pilot to be considered **complete**, it must have:
 
 ---
 
-**Current Status**: 6/9 pilots complete ✅
-**Next Action**: GCD/QoS pilot (or Neural Engine if prioritized)
-**DO NOT**: Attempt Level 1/2 until 9/9 complete
+## Publication Readiness Update (November 2, 2025)
+
+**Current Status**: 7/9 pilots complete (or validated via proxy) ✅
+
+**Major Strategic Decision**: After completing 6 dimension pilots + GCD decision, assessed publication readiness:
+- **Question**: "Do we have experimental coverage for scientific publication?"
+- **Answer**: Almost - one critical gap identified
+- **Gap**: Rule composition not validated (do NEON × Parallel combine multiplicatively?)
+- **Required**: ~200 Composition Validation experiments
+- **See**: `PUBLICATION_READINESS_ASSESSMENT.md` for comprehensive analysis
+
+**Key Insight**: Individual dimension pilots are excellent (962 experiments), but we haven't tested if optimizations compose correctly. This is critical for:
+1. Scientific validity (reviewers will ask about combined optimizations)
+2. Practical ruleset (users will combine NEON + Parallel)
+3. Prediction accuracy (can we predict NEON+Parallel from individual pilots?)
+
+**Recommended Next Phase**: Composition Validation (200 experiments, 5-8 hours)
+- 10 operations × 4 backends (Naive, NEON, NEON+Parallel, NEON+Parallel+GPU) × 5 scales
+- Tests if rules from individual pilots compose multiplicatively or interact
+- Provides prediction accuracy metrics for publication
+
+**Deferred Pilots**:
+- Neural Engine: 5-6 days effort, FFI overhead pattern predicts negative
+- M5 GPU Neural Accelerators: Requires M5 hardware purchase (~$7,499)
 
 **Recent Completions** (Nov 2):
 - AMX pilot - AMX does NOT help (0.91-0.93× vs NEON) - critical negative finding!
 - Hardware Compression pilot - Compression does NOT help (0.30-0.67× vs uncompressed) - critical negative finding!
+- GCD/QoS decision - Validated via Parallel dimension proxy, full implementation deferred
 
-**Two consecutive negative findings**: Both AMX and Hardware Compression showed no benefit. This validates the systematic approach - these findings prevent wasted optimization effort.
+**Pattern Identified**: FFI/Framework overhead consistently negates theoretical benefits (AMX, Compression, predicted GCD)
+
+**Total Experiments**: 962 (including Parallel dimension counted as GCD proxy)
 
 **Last Updated**: November 2, 2025

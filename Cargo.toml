@@ -46,6 +46,7 @@ crossbeam = "0.8"
 
 # Parallel processing
 rayon = "1.8"
+dispatch = "0.2.0"  # Grand Central Dispatch (GCD) wrapper for Apple platforms
 
 # Statistics and ML
 statrs = "0.16"

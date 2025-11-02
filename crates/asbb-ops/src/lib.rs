@@ -23,6 +23,7 @@ pub mod base_counting;
 pub mod complexity_score;
 pub mod compression; // Hardware Compression pilot utilities
 pub mod edit_distance;
+pub mod gcd; // Grand Central Dispatch utilities for GCD/QoS pilot
 pub mod fastq_parsing;
 pub mod gc_content;
 pub mod hamming_distance;
