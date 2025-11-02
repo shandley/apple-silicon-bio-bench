@@ -1,0 +1,41 @@
+OVERALL PARALLEL PERFORMANCE SUMMARY
+======================================================================
+
+Best Speedup Achieved (any configuration):
+----------------------------------------------------------------------
+at_content           (complexity 0.35): 5.36× (8t/default, Huge scale)
+base_counting        (complexity 0.40): 5.56× (8t/default, Huge scale)
+complexity_score     (complexity 0.61): 6.10× (8t/e_cores, VeryLarge scale)
+gc_content           (complexity 0.32): 5.36× (8t/default, Huge scale)
+length_filter        (complexity 0.55): 1.48× (8t/e_cores, Huge scale)
+n_content            (complexity 0.25): 3.87× (8t/p_cores, Huge scale)
+quality_aggregation  (complexity 0.50): 4.25× (8t/default, Huge scale)
+quality_filter       (complexity 0.55): 4.07× (8t/default, Huge scale)
+reverse_complement   (complexity 0.45): 2.63× (8t/default, VeryLarge scale)
+sequence_length      (complexity 0.20): 2.30× (8t/e_cores, Huge scale)
+
+Speedup at 8 threads, Huge scale (10M sequences):
+----------------------------------------------------------------------
+at_content          : Avg=5.30×, Best=5.36× (default)
+base_counting       : Avg=5.51×, Best=5.56× (default)
+complexity_score    : Avg=5.70×, Best=5.73× (default)
+gc_content          : Avg=5.27×, Best=5.36× (default)
+length_filter       : Avg=1.43×, Best=1.48× (e_cores)
+n_content           : Avg=3.84×, Best=3.87× (p_cores)
+quality_aggregation : Avg=4.17×, Best=4.25× (default)
+quality_filter      : Avg=4.01×, Best=4.07× (default)
+reverse_complement  : Avg=1.72×, Best=2.24× (default)
+sequence_length     : Avg=2.25×, Best=2.30× (e_cores)
+
+P-cores vs E-cores (8 threads, Huge scale, relative performance):
+----------------------------------------------------------------------
+at_content          : P=5.35×, E=5.17×, Winner: P-cores (+3.5%)
+base_counting       : P=5.43×, E=5.53×, Winner: E-cores (+1.7%)
+complexity_score    : P=5.66×, E=5.70×, Winner: E-cores (+0.7%)
+gc_content          : P=5.19×, E=5.25×, Winner: E-cores (+1.1%)
+length_filter       : P=1.38×, E=1.48×, Winner: E-cores (+7.6%)
+n_content           : P=3.87×, E=3.79×, Winner: P-cores (+2.1%)
+quality_aggregation : P=4.14×, E=4.11×, Winner: P-cores (+0.9%)
+quality_filter      : P=3.95×, E=4.01×, Winner: E-cores (+1.6%)
+reverse_complement  : P=2.19×, E=0.74×, Winner: P-cores (+195.4%)
+sequence_length     : P=2.20×, E=2.30×, Winner: E-cores (+4.4%)
