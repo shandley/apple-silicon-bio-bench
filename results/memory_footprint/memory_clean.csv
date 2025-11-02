@@ -1,0 +1,33 @@
+   --> crates/asbb-cli/src/pilot_memory_footprint.rs:172:9
+    |
+172 |     let total_time = start.elapsed();
+    |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_total_time`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+     Running `target/release/asbb-pilot-memory`
+operation,scale,num_sequences,seq_length,baseline_mb,after_generation_mb,peak_mb,operation_memory_mb,time_ms
+base_counting,Tiny,100,150,2.78,2.91,3.05,0.27,1
+base_counting,Small,1000,150,3.14,3.64,3.67,0.53,4
+base_counting,Medium,10000,150,3.67,7.33,7.33,3.66,2
+base_counting,Large,100000,150,7.33,43.42,43.42,36.09,6
+base_counting,VeryLarge,1000000,150,43.42,403.73,403.73,360.31,54
+gc_content,Tiny,100,150,403.73,403.75,403.78,0.05,6
+gc_content,Small,1000,150,403.78,403.78,403.78,0.00,3
+gc_content,Medium,10000,150,403.86,404.66,404.69,0.83,2
+gc_content,Large,100000,150,404.69,406.23,406.23,1.55,6
+gc_content,VeryLarge,1000000,150,406.23,412.12,412.12,5.89,41
+quality_filter,Tiny,100,150,412.12,412.12,412.12,0.00,6
+quality_filter,Small,1000,150,412.12,412.20,412.20,0.08,4
+quality_filter,Medium,10000,150,412.20,412.20,412.20,0.00,2
+quality_filter,Large,100000,150,412.20,419.08,419.08,6.88,5
+quality_filter,VeryLarge,1000000,150,419.08,430.97,430.97,11.89,26
+sequence_length,Tiny,100,150,430.97,430.98,431.06,0.09,7
+sequence_length,Small,1000,150,431.06,431.06,431.06,0.00,4
+sequence_length,Medium,10000,150,431.06,431.06,431.06,0.00,2
+sequence_length,Large,100000,150,431.06,431.23,431.23,0.17,2
+sequence_length,VeryLarge,1000000,150,431.23,440.98,440.98,9.75,3
+reverse_complement,Tiny,100,150,440.98,440.98,441.00,0.02,4
+reverse_complement,Small,1000,150,441.00,441.00,441.11,0.11,4
+reverse_complement,Medium,10000,150,441.19,441.19,441.88,0.69,3
+reverse_complement,Large,100000,150,441.88,448.91,458.69,16.81,13
+reverse_complement,VeryLarge,1000000,150,458.69,466.34,715.52,256.83,131

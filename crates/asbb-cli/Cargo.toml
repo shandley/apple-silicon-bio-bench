@@ -115,3 +115,7 @@ path = "src/pilot_compression.rs"
 [[bin]]
 name = "asbb-pilot-composition"
 path = "src/pilot_composition.rs"
+
+[[bin]]
+name = "asbb-pilot-memory"
+path = "src/pilot_memory_footprint.rs"
