@@ -106,3 +106,7 @@ path = "src/test_single_experiment.rs"
 [[bin]]
 name = "asbb-pilot-amx"
 path = "src/pilot_amx.rs"
+
+[[bin]]
+name = "asbb-pilot-compression"
+path = "src/pilot_compression.rs"

@@ -1,6 +1,6 @@
 # Individual Dimension Pilot Checkpoint
 
-**Date**: November 2, 2025 (Updated: AMX complete)
+**Date**: November 2, 2025 (Updated: Hardware Compression complete)
 **Purpose**: Track progress on systematic dimension pilots and prevent premature automation
 
 ---
@@ -23,7 +23,7 @@
 
 ## Pilot Status Tracker
 
-### ✅ Completed Pilots (5/9)
+### ✅ Completed Pilots (6/9)
 
 #### 1. NEON SIMD Dimension ✅
 - **Experiments**: 60 (10 operations × 6 scales)
@@ -61,11 +61,19 @@
 - **Documentation**: results/phase1_amx_dimension/amx_pilot_summary.md
 - **Optimization Rule**: Use NEON + parallel, skip AMX
 
+#### 6. Hardware Compression Dimension ✅
+- **Experiments**: 54 (3 operations × 3 compressions × 6 scales)
+- **Date**: November 2, 2025
+- **Key Finding**: Compression does NOT improve throughput (0.30-0.67× vs uncompressed)
+- **Data**: results/phase1_hardware_compression/compression_pilot_output.txt
+- **Documentation**: experiments/phase1_hardware_compression/RESULTS_SUMMARY.md
+- **Optimization Rule**: Use uncompressed for processing, compressed for storage
+
 ---
 
-### ⏳ Remaining Pilots (4/9)
+### ⏳ Remaining Pilots (3/9)
 
-#### 6. Neural Engine Dimension ⏳ **← NEXT**
+#### 7. Neural Engine Dimension ⏳ **← DEFERRED (complex, 5-6 days)**
 - **Experiments**: TBD (~240 planned)
 - **Operations**: ML-amenable operations
   - sequence_classification
@@ -74,17 +82,9 @@
   - taxonomy classification
 - **Configurations**: Neural Engine vs CPU, Core ML models
 - **Expected Insights**: ML-based sequence analysis performance
+- **Status**: Design complete, deferred until after simpler pilots
 
-#### 7. Hardware Compression Dimension ⏳
-- **Experiments**: TBD (~240 planned)
-- **Operations**: I/O and memory-intensive operations
-  - fastq_parsing with compression
-  - intermediate result compression
-  - format_conversion with compression
-- **Configurations**: AppleArchive framework variants
-- **Expected Insights**: Zero-cost compression opportunities
-
-#### 8. GCD/QoS Dimension ⏳
+#### 8. GCD/QoS Dimension ⏳ **← NEXT**
 - **Experiments**: TBD (~240 planned)
 - **Operations**: All operations tested with GCD dispatch
 - **Configurations**: Different QoS levels (user-initiated, background, etc.)
@@ -152,10 +152,14 @@ For each pilot to be considered **complete**, it must have:
 
 ---
 
-**Current Status**: 5/9 pilots complete ✅
-**Next Action**: Neural Engine pilot (240 experiments) **← NEXT**
+**Current Status**: 6/9 pilots complete ✅
+**Next Action**: GCD/QoS pilot (or Neural Engine if prioritized)
 **DO NOT**: Attempt Level 1/2 until 9/9 complete
 
-**Recent Completion** (Nov 2): AMX pilot - Found AMX does NOT help sequence ops (critical negative finding!)
+**Recent Completions** (Nov 2):
+- AMX pilot - AMX does NOT help (0.91-0.93× vs NEON) - critical negative finding!
+- Hardware Compression pilot - Compression does NOT help (0.30-0.67× vs uncompressed) - critical negative finding!
+
+**Two consecutive negative findings**: Both AMX and Hardware Compression showed no benefit. This validates the systematic approach - these findings prevent wasted optimization effort.
 
 **Last Updated**: November 2, 2025

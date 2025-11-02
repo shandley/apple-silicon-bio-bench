@@ -1,0 +1,178 @@
+    Finished `release` profile [optimized] target(s) in 0.04s
+     Running `/Users/scotthandley/Code/apple-silicon-bio-bench/target/release/asbb-pilot-compression`
+╔════════════════════════════════════════════════════════════════════╗
+║          Hardware Compression Pilot                                ║
+║          Systematic Testing of Compression Algorithms              ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🔬 Testing: 3 operations × 3 compressions × 6 scales = 54 experiments
+🎯 Goal: Quantify compression benefit vs overhead
+📊 Compressions: ["uncompressed", "gzip", "zstd"]
+💾 Operations: I/O-heavy (parsing, length, quality aggregation)
+
+operation,scale,num_sequences,compression,time_ms,speedup_vs_uncompressed,throughput_seqs_per_sec
+═══════════════════════════════════════════════════════════════════
+Operation: fastq_parsing
+═══════════════════════════════════════════════════════════════════
+
+  Scale: Tiny (100 sequences)
+  [  1/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 1/54: No such file or directory (os error 2)
+  [  2/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 2/54: No such file or directory (os error 2)
+  [  3/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 3/54: No such file or directory (os error 2)
+
+  Scale: Small (1000 sequences)
+  [  4/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 4/54: No such file or directory (os error 2)
+  [  5/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 5/54: No such file or directory (os error 2)
+  [  6/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 6/54: No such file or directory (os error 2)
+
+  Scale: Medium (10000 sequences)
+  [  7/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 7/54: No such file or directory (os error 2)
+  [  8/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 8/54: No such file or directory (os error 2)
+  [  9/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 9/54: No such file or directory (os error 2)
+
+  Scale: Large (100000 sequences)
+  [ 10/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 10/54: No such file or directory (os error 2)
+  [ 11/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 11/54: No such file or directory (os error 2)
+  [ 12/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 12/54: No such file or directory (os error 2)
+
+  Scale: VeryLarge (1000000 sequences)
+  [ 13/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 13/54: No such file or directory (os error 2)
+  [ 14/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 14/54: No such file or directory (os error 2)
+  [ 15/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 15/54: No such file or directory (os error 2)
+
+  Scale: Huge (10000000 sequences)
+  [ 16/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 16/54: No such file or directory (os error 2)
+  [ 17/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 17/54: No such file or directory (os error 2)
+  [ 18/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 18/54: No such file or directory (os error 2)
+
+═══════════════════════════════════════════════════════════════════
+Operation: sequence_length
+═══════════════════════════════════════════════════════════════════
+
+  Scale: Tiny (100 sequences)
+  [ 19/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 19/54: No such file or directory (os error 2)
+  [ 20/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 20/54: No such file or directory (os error 2)
+  [ 21/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 21/54: No such file or directory (os error 2)
+
+  Scale: Small (1000 sequences)
+  [ 22/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 22/54: No such file or directory (os error 2)
+  [ 23/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 23/54: No such file or directory (os error 2)
+  [ 24/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 24/54: No such file or directory (os error 2)
+
+  Scale: Medium (10000 sequences)
+  [ 25/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 25/54: No such file or directory (os error 2)
+  [ 26/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 26/54: No such file or directory (os error 2)
+  [ 27/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 27/54: No such file or directory (os error 2)
+
+  Scale: Large (100000 sequences)
+  [ 28/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 28/54: No such file or directory (os error 2)
+  [ 29/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 29/54: No such file or directory (os error 2)
+  [ 30/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 30/54: No such file or directory (os error 2)
+
+  Scale: VeryLarge (1000000 sequences)
+  [ 31/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 31/54: No such file or directory (os error 2)
+  [ 32/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 32/54: No such file or directory (os error 2)
+  [ 33/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 33/54: No such file or directory (os error 2)
+
+  Scale: Huge (10000000 sequences)
+  [ 34/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 34/54: No such file or directory (os error 2)
+  [ 35/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 35/54: No such file or directory (os error 2)
+  [ 36/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 36/54: No such file or directory (os error 2)
+
+═══════════════════════════════════════════════════════════════════
+Operation: quality_aggregation
+═══════════════════════════════════════════════════════════════════
+
+  Scale: Tiny (100 sequences)
+  [ 37/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 37/54: No such file or directory (os error 2)
+  [ 38/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 38/54: No such file or directory (os error 2)
+  [ 39/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 39/54: No such file or directory (os error 2)
+
+  Scale: Small (1000 sequences)
+  [ 40/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 40/54: No such file or directory (os error 2)
+  [ 41/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 41/54: No such file or directory (os error 2)
+  [ 42/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 42/54: No such file or directory (os error 2)
+
+  Scale: Medium (10000 sequences)
+  [ 43/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 43/54: No such file or directory (os error 2)
+  [ 44/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 44/54: No such file or directory (os error 2)
+  [ 45/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 45/54: No such file or directory (os error 2)
+
+  Scale: Large (100000 sequences)
+  [ 46/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 46/54: No such file or directory (os error 2)
+  [ 47/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 47/54: No such file or directory (os error 2)
+  [ 48/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 48/54: No such file or directory (os error 2)
+
+  Scale: VeryLarge (1000000 sequences)
+  [ 49/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 49/54: No such file or directory (os error 2)
+  [ 50/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 50/54: No such file or directory (os error 2)
+  [ 51/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 51/54: No such file or directory (os error 2)
+
+  Scale: Huge (10000000 sequences)
+  [ 52/ 54] uncompressed ... ERROR: No such file or directory (os error 2)
+Error in experiment 52/54: No such file or directory (os error 2)
+  [ 53/ 54] gzip         ... ERROR: No such file or directory (os error 2)
+Error in experiment 53/54: No such file or directory (os error 2)
+  [ 54/ 54] zstd         ... ERROR: No such file or directory (os error 2)
+Error in experiment 54/54: No such file or directory (os error 2)
+
+═══════════════════════════════════════════════════════════════════
+✅ Hardware Compression Pilot Complete
+
+📊 Summary:
+   - Total experiments: 0
+   - Operations tested: 3
+   - Compression algorithms: 3
+   - Scales tested: 6
+

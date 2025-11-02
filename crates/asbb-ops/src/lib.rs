@@ -21,6 +21,7 @@ pub mod adapter_trimming;
 pub mod at_content;
 pub mod base_counting;
 pub mod complexity_score;
+pub mod compression; // Hardware Compression pilot utilities
 pub mod edit_distance;
 pub mod fastq_parsing;
 pub mod gc_content;

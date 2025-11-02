@@ -14,6 +14,10 @@ rayon.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
+# Compression support (Hardware Compression pilot)
+flate2 = "1.0"  # gzip decompression (software baseline)
+zstd = "0.13"   # zstd decompression (fast compression)
+
 # GPU support (macOS only)
 [target.'cfg(target_os = "macos")'.dependencies]
 asbb-gpu = { path = "../asbb-gpu", optional = true }

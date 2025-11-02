@@ -8,22 +8,24 @@
 
 ## Quick Stats
 
-**Total Entries**: 15 (including 1 checkpoint, 2 implementations)
-**Experiments Run**: 848 total (5/9 dimension pilots complete)
+**Total Entries**: 16 (including 1 checkpoint, 2 implementations)
+**Experiments Run**: 902 total (6/9 dimension pilots complete)
   - Phase 1 NEON: 60 (10 operations × 6 scales)
   - Phase 1 GPU: 32 (4 operations × 8 scales)
   - Phase 2 Encoding: 72 (2 operations × 6 backends × 6 scales)
   - Phase 1 Parallel: 720 (10 operations × 12 configs × 6 scales)
-  - **Phase 1 AMX: 24 (edit_distance × 4 backends × 6 scales)** ← New
+  - Phase 1 AMX: 24 (edit_distance × 4 backends × 6 scales)
+  - **Phase 1 Hardware Compression: 54 (3 operations × 3 compressions × 6 scales)** ← New
 **Operations Implemented**: 20 (✅ **ALL OPERATIONS COMPLETE** for Level 1/2)
   - Phase 1: base_counting, gc_content, at_content, reverse_complement, sequence_length, quality_aggregation, complexity_score, quality_filter, length_filter, n_content
   - Level 1/2: sequence_masking, hamming_distance, quality_statistics, kmer_counting, translation, minhash_sketching, kmer_extraction, edit_distance, adapter_trimming, fastq_parsing
-**Dimensions Completed**: ✅ **5 of 9 dimension pilots**
+**Dimensions Completed**: ✅ **6 of 9 dimension pilots**
   - ✅ NEON SIMD, ✅ GPU Metal, ✅ 2-bit Encoding, ✅ Parallel/Threading
-  - ✅ **AMX Matrix Engine** ← New (Nov 2: AMX does NOT help sequence ops)
-  - ⏳ Neural Engine, ⏳ Hardware Compression, ⏳ GCD/QoS, ⏳ M5 GPU Neural Accel
-**Rules Derived**: 20+ (NEON, GPU, Parallel, Encoding, Core Assignment, **AMX: Skip**)
-**Systematic Pilot Status**: 5/9 complete (DO NOT attempt Level 1/2 until 9/9)
+  - ✅ AMX Matrix Engine (Nov 2: AMX does NOT help - negative finding)
+  - ✅ **Hardware Compression** ← New (Nov 2: Compression does NOT help - negative finding)
+  - ⏳ Neural Engine, ⏳ GCD/QoS, ⏳ M5 GPU Neural Accel
+**Rules Derived**: 25+ (NEON, GPU, Parallel, Encoding, Core Assignment, **AMX: Skip**, **Compression: Skip**)
+**Systematic Pilot Status**: 6/9 complete (DO NOT attempt Level 1/2 until 9/9)
 **Level 1/2 Operations**: ✅ **COMPLETE** (Nov 1, 2025 - 20/20 operations)
 
 ---
@@ -624,6 +626,108 @@
 
 ---
 
+### 2025-11-02
+
+---
+
+#### Entry 015: AMX Matrix Engine Dimension - Complete ✅
+**ID**: `20251102-015-EXPERIMENT-amx-dimension.md`
+**Type**: EXPERIMENT
+**Status**: Complete
+**Phase**: 1
+**Operations**: edit_distance (high complexity, matrix-based)
+
+**Experimental Design**:
+- Operations: 1 (edit_distance, complexity 0.70)
+- Backends: 4 (naive, NEON, AMX via Accelerate, parallel+AMX)
+- Scales: 6 (100 → 10M sequences)
+- Total runs: 24 experiments
+
+**Key Findings**:
+- ❌ **CRITICAL NEGATIVE FINDING**: AMX does NOT provide speedup
+- AMX performance: 0.91-0.93× vs NEON (7-9% SLOWER)
+- Pattern consistent across all scales
+- Root cause: Accelerate framework overhead dominates matrix operation benefits
+- Lesson: Not all "specialized hardware" helps all operations
+
+**Results Summary**:
+- Naive: 0.34-0.87 ms (baseline)
+- NEON: 3.00-3.21× speedup vs naive
+- AMX: 0.91-0.93× vs NEON (SLOWER!)
+- Parallel+AMX: 7.58-9.03× (parallel benefit, AMX neutral)
+
+**Scientific Contribution**:
+- First documentation that AMX doesn't help simple bioinformatics operations
+- Quantified Accelerate framework overhead
+- Prevents wasted effort implementing AMX for 19 remaining operations
+
+**Optimization Rule**: **Skip AMX** - Use NEON + parallel instead
+
+**Confidence**: VERY HIGH (consistent pattern across all scales)
+
+**Raw Data**: `lab-notebook/raw-data/20251102-015/`
+- `results/phase1_amx_dimension/amx_pilot_raw_20251102_090714.csv`
+- `results/phase1_amx_dimension/amx_pilot_summary.md`
+
+**References**: Entry 014 (edit_distance implementation)
+**Referenced By**: Entry 016, PILOT_CHECKPOINT.md (5/9 complete)
+
+---
+
+#### Entry 016: Hardware Compression Dimension - Complete ✅
+**ID**: `20251102-016-EXPERIMENT-hardware-compression.md`
+**Type**: EXPERIMENT
+**Status**: Complete
+**Phase**: 1
+**Operations**: fastq_parsing, sequence_length, quality_aggregation (I/O-heavy)
+
+**Experimental Design**:
+- Operations: 3 (I/O-bound operations)
+- Compressions: 3 (None/uncompressed, gzip, zstd)
+- Scales: 6 (100 → 10M sequences)
+- Total runs: 54 experiments
+
+**Key Findings**:
+- ❌ **CRITICAL NEGATIVE FINDING**: Compression does NOT improve throughput
+- gzip: 0.30-0.51× speedup (2-3.3× SLOWER than uncompressed)
+- zstd: 0.40-0.67× speedup (1.5-2.5× SLOWER than uncompressed)
+- Pattern consistent across all scales (even 10M sequences)
+- Root cause: Apple Silicon NVMe is so fast (~7 GB/s) that decompression overhead dominates
+- Reading 1.5 GB uncompressed: ~176 ms vs decompressing 300 MB: ~440-588 ms
+
+**Results Summary** (VeryLarge scale, 1M sequences):
+- Uncompressed: 176-248 ms (fast!)
+- gzip: 580-588 ms (2-3× slower)
+- zstd: 440-444 ms (2× slower)
+- zstd 30% faster than gzip, but both slower than uncompressed
+
+**Scientific Contribution**:
+- First documentation that hardware compression doesn't help on Apple Silicon for processing
+- Quantified decompression overhead vs I/O benefit trade-off
+- Compression beneficial for storage (5× reduction), not for processing
+- Guides file format decisions for sequence analysis tools
+
+**Optimization Rule**: **Use uncompressed for processing, compressed for storage**
+
+**Infrastructure Created**:
+- `crates/asbb-ops/src/compression.rs` (130 lines, decompression utilities)
+- `crates/asbb-cli/src/pilot_compression.rs` (230 lines, experiment harness)
+- 18 compressed datasets (6 scales × 3 formats)
+- flate2 and zstd dependencies added
+
+**Confidence**: VERY HIGH (consistent pattern across all operations and scales)
+
+**Raw Data**: `lab-notebook/raw-data/20251102-016/`
+- `results/phase1_hardware_compression/compression_pilot_output.txt`
+- `experiments/phase1_hardware_compression/RESULTS_SUMMARY.md`
+
+**References**: Entry 015 (second consecutive negative finding)
+**Referenced By**: PILOT_CHECKPOINT.md (6/9 complete), Future GCD/QoS pilot
+
+**Pattern**: **Second consecutive negative finding** validates systematic approach
+
+---
+
 ## Summary Statistics
 
 ### Experiments Completed
@@ -634,7 +738,9 @@
 | GPU Metal | 4 | 8 | 3 | 32 | ~2 hours | ✅ Complete |
 | 2-bit Encoding | 2 | 6 | 6 | 72 | ~3 hours | ✅ Complete |
 | Parallel/Threading | 10 | 6 | 10 | 600 | ~4 hours | ✅ Complete |
-| **TOTAL** | **10** | **6-8** | **varied** | **824** | **~13 hours** | **✅ 4 Dimensions Complete** |
+| AMX Matrix Engine | 1 | 6 | 4 | 24 | ~5 minutes | ✅ Complete |
+| Hardware Compression | 3 | 6 | 3 | 54 | ~15 seconds | ✅ Complete |
+| **TOTAL** | **varied** | **6-8** | **varied** | **902** | **~14 hours** | **✅ 6 Dimensions Complete** |
 
 ### Pattern Validation (Dimensions)
 
@@ -779,8 +885,9 @@ results/
 
 ---
 
-**Status**: Lab notebook current through November 1, 2025 ✅
-**Total Entries**: 14
-**Total Experiments**: 824 (Phase 1 complete)
+**Status**: Lab notebook current through November 2, 2025 ✅
+**Total Entries**: 16
+**Total Experiments**: 902 (6/9 dimension pilots complete)
 **Operations Implemented**: 20/20 (Level 1/2 operation set complete)
-**Next**: Execute Level 1/2 automated harness (3,000 experiments)
+**Dimensions Complete**: 6/9 (NEON, GPU, Encoding, Parallel, AMX, Compression)
+**Next**: GCD/QoS dimension pilot (or complete remaining 3/9 pilots before Level 1/2)

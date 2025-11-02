@@ -1,0 +1,176 @@
+╔════════════════════════════════════════════════════════════════════╗
+║          Hardware Compression Pilot                                ║
+║          Systematic Testing of Compression Algorithms              ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🔬 Testing: 3 operations × 3 compressions × 6 scales = 54 experiments
+🎯 Goal: Quantify compression benefit vs overhead
+📊 Compressions: ["uncompressed", "gzip", "zstd"]
+💾 Operations: I/O-heavy (parsing, length, quality aggregation)
+
+operation,scale,num_sequences,compression,time_ms,speedup_vs_uncompressed,throughput_seqs_per_sec
+═══════════════════════════════════════════════════════════════════
+Operation: fastq_parsing
+═══════════════════════════════════════════════════════════════════
+
+  Scale: Tiny (100 sequences)
+  [  1/ 54] uncompressed ...     0.10ms  (1.00× vs uncompressed)
+fastq_parsing,Tiny,100,uncompressed,0.102167,1.0000,978789.63
+  [  2/ 54] gzip         ...     0.21ms  (0.50× vs uncompressed)
+fastq_parsing,Tiny,100,gzip,0.205292,0.4977,487111.04
+  [  3/ 54] zstd         ...     0.18ms  (0.56× vs uncompressed)
+fastq_parsing,Tiny,100,zstd,0.182083,0.5611,549200.09
+
+  Scale: Small (1000 sequences)
+  [  4/ 54] uncompressed ...     0.36ms  (1.00× vs uncompressed)
+fastq_parsing,Small,1000,uncompressed,0.355500,1.0000,2812939.52
+  [  5/ 54] gzip         ...     1.10ms  (0.32× vs uncompressed)
+fastq_parsing,Small,1000,gzip,1.096750,0.3241,911784.82
+  [  6/ 54] zstd         ...     0.76ms  (0.47× vs uncompressed)
+fastq_parsing,Small,1000,zstd,0.763708,0.4655,1309400.98
+
+  Scale: Medium (10000 sequences)
+  [  7/ 54] uncompressed ...     2.99ms  (1.00× vs uncompressed)
+fastq_parsing,Medium,10000,uncompressed,2.985625,1.0000,3349382.46
+  [  8/ 54] gzip         ...     8.86ms  (0.34× vs uncompressed)
+fastq_parsing,Medium,10000,gzip,8.855666,0.3371,1129220.55
+  [  9/ 54] zstd         ...     6.32ms  (0.47× vs uncompressed)
+fastq_parsing,Medium,10000,zstd,6.322000,0.4723,1581777.92
+
+  Scale: Large (100000 sequences)
+  [ 10/ 54] uncompressed ...    21.80ms  (1.00× vs uncompressed)
+fastq_parsing,Large,100000,uncompressed,21.798375,1.0000,4587497.92
+  [ 11/ 54] gzip         ...    58.76ms  (0.37× vs uncompressed)
+fastq_parsing,Large,100000,gzip,58.764958,0.3709,1701694.40
+  [ 12/ 54] zstd         ...    43.77ms  (0.50× vs uncompressed)
+fastq_parsing,Large,100000,zstd,43.766375,0.4981,2284859.10
+
+  Scale: VeryLarge (1000000 sequences)
+  [ 13/ 54] uncompressed ...   176.11ms  (1.00× vs uncompressed)
+fastq_parsing,VeryLarge,1000000,uncompressed,176.108791,1.0000,5678308.25
+  [ 14/ 54] gzip         ...   587.67ms  (0.30× vs uncompressed)
+fastq_parsing,VeryLarge,1000000,gzip,587.667375,0.2997,1701642.87
+  [ 15/ 54] zstd         ...   440.07ms  (0.40× vs uncompressed)
+fastq_parsing,VeryLarge,1000000,zstd,440.067916,0.4002,2272376.52
+
+  Scale: Huge (10000000 sequences)
+  [ 16/ 54] uncompressed ...  2951.03ms  (1.00× vs uncompressed)
+fastq_parsing,Huge,10000000,uncompressed,2951.028250,1.0000,3388649.36
+  [ 17/ 54] gzip         ...  5765.01ms  (0.51× vs uncompressed)
+fastq_parsing,Huge,10000000,gzip,5765.005541,0.5119,1734603.71
+  [ 18/ 54] zstd         ...  4417.09ms  (0.67× vs uncompressed)
+fastq_parsing,Huge,10000000,zstd,4417.091167,0.6681,2263933.35
+
+═══════════════════════════════════════════════════════════════════
+Operation: sequence_length
+═══════════════════════════════════════════════════════════════════
+
+  Scale: Tiny (100 sequences)
+  [ 19/ 54] uncompressed ...     0.23ms  (1.00× vs uncompressed)
+sequence_length,Tiny,100,uncompressed,0.225000,1.0000,444444.44
+  [ 20/ 54] gzip         ...     0.25ms  (0.90× vs uncompressed)
+sequence_length,Tiny,100,gzip,0.250875,0.8969,398604.88
+  [ 21/ 54] zstd         ...     0.19ms  (1.21× vs uncompressed)
+sequence_length,Tiny,100,zstd,0.185208,1.2149,539933.48
+
+  Scale: Small (1000 sequences)
+  [ 22/ 54] uncompressed ...     0.45ms  (1.00× vs uncompressed)
+sequence_length,Small,1000,uncompressed,0.450583,1.0000,2219346.93
+  [ 23/ 54] gzip         ...     0.91ms  (0.49× vs uncompressed)
+sequence_length,Small,1000,gzip,0.911875,0.4941,1096641.54
+  [ 24/ 54] zstd         ...     0.65ms  (0.70× vs uncompressed)
+sequence_length,Small,1000,zstd,0.647708,0.6957,1543905.59
+
+  Scale: Medium (10000 sequences)
+  [ 25/ 54] uncompressed ...     2.62ms  (1.00× vs uncompressed)
+sequence_length,Medium,10000,uncompressed,2.623833,1.0000,3811218.17
+  [ 26/ 54] gzip         ...     5.92ms  (0.44× vs uncompressed)
+sequence_length,Medium,10000,gzip,5.923834,0.4429,1688095.92
+  [ 27/ 54] zstd         ...     4.78ms  (0.55× vs uncompressed)
+sequence_length,Medium,10000,zstd,4.776334,0.5493,2093655.93
+
+  Scale: Large (100000 sequences)
+  [ 28/ 54] uncompressed ...    25.21ms  (1.00× vs uncompressed)
+sequence_length,Large,100000,uncompressed,25.206708,1.0000,3967197.94
+  [ 29/ 54] gzip         ...    60.46ms  (0.42× vs uncompressed)
+sequence_length,Large,100000,gzip,60.463333,0.4169,1653894.93
+  [ 30/ 54] zstd         ...    47.25ms  (0.53× vs uncompressed)
+sequence_length,Large,100000,zstd,47.251583,0.5335,2116331.21
+
+  Scale: VeryLarge (1000000 sequences)
+  [ 31/ 54] uncompressed ...   243.73ms  (1.00× vs uncompressed)
+sequence_length,VeryLarge,1000000,uncompressed,243.726417,1.0000,4102961.07
+  [ 32/ 54] gzip         ...   579.71ms  (0.42× vs uncompressed)
+sequence_length,VeryLarge,1000000,gzip,579.713917,0.4204,1724988.78
+  [ 33/ 54] zstd         ...   439.82ms  (0.55× vs uncompressed)
+sequence_length,VeryLarge,1000000,zstd,439.824375,0.5541,2273634.79
+
+  Scale: Huge (10000000 sequences)
+  [ 34/ 54] uncompressed ...  2263.21ms  (1.00× vs uncompressed)
+sequence_length,Huge,10000000,uncompressed,2263.210417,1.0000,4418502.11
+  [ 35/ 54] gzip         ...  5867.28ms  (0.39× vs uncompressed)
+sequence_length,Huge,10000000,gzip,5867.283625,0.3857,1704366.22
+  [ 36/ 54] zstd         ...  4482.01ms  (0.50× vs uncompressed)
+sequence_length,Huge,10000000,zstd,4482.007209,0.5050,2231143.22
+
+═══════════════════════════════════════════════════════════════════
+Operation: quality_aggregation
+═══════════════════════════════════════════════════════════════════
+
+  Scale: Tiny (100 sequences)
+  [ 37/ 54] uncompressed ...     0.96ms  (1.00× vs uncompressed)
+quality_aggregation,Tiny,100,uncompressed,0.955334,1.0000,104675.43
+  [ 38/ 54] gzip         ...     0.33ms  (2.87× vs uncompressed)
+quality_aggregation,Tiny,100,gzip,0.332792,2.8707,300487.99
+  [ 39/ 54] zstd         ...     0.20ms  (4.89× vs uncompressed)
+quality_aggregation,Tiny,100,zstd,0.195375,4.8897,511836.21
+
+  Scale: Small (1000 sequences)
+  [ 40/ 54] uncompressed ...     0.52ms  (1.00× vs uncompressed)
+quality_aggregation,Small,1000,uncompressed,0.515292,1.0000,1940647.24
+  [ 41/ 54] gzip         ...     0.91ms  (0.56× vs uncompressed)
+quality_aggregation,Small,1000,gzip,0.913875,0.5639,1094241.55
+  [ 42/ 54] zstd         ...     0.60ms  (0.86× vs uncompressed)
+quality_aggregation,Small,1000,zstd,0.598709,0.8607,1670260.51
+
+  Scale: Medium (10000 sequences)
+  [ 43/ 54] uncompressed ...     2.66ms  (1.00× vs uncompressed)
+quality_aggregation,Medium,10000,uncompressed,2.655875,1.0000,3765237.45
+  [ 44/ 54] gzip         ...     6.15ms  (0.43× vs uncompressed)
+quality_aggregation,Medium,10000,gzip,6.153750,0.4316,1625025.39
+  [ 45/ 54] zstd         ...     4.86ms  (0.55× vs uncompressed)
+quality_aggregation,Medium,10000,zstd,4.858083,0.5467,2058425.10
+
+  Scale: Large (100000 sequences)
+  [ 46/ 54] uncompressed ...    24.92ms  (1.00× vs uncompressed)
+quality_aggregation,Large,100000,uncompressed,24.915959,1.0000,4013491.91
+  [ 47/ 54] gzip         ...    59.92ms  (0.42× vs uncompressed)
+quality_aggregation,Large,100000,gzip,59.923959,0.4158,1668781.60
+  [ 48/ 54] zstd         ...    46.97ms  (0.53× vs uncompressed)
+quality_aggregation,Large,100000,zstd,46.971042,0.5305,2128971.29
+
+  Scale: VeryLarge (1000000 sequences)
+  [ 49/ 54] uncompressed ...   248.30ms  (1.00× vs uncompressed)
+quality_aggregation,VeryLarge,1000000,uncompressed,248.300167,1.0000,4027383.52
+  [ 50/ 54] gzip         ...   584.37ms  (0.42× vs uncompressed)
+quality_aggregation,VeryLarge,1000000,gzip,584.374083,0.4249,1711232.63
+  [ 51/ 54] zstd         ...   443.62ms  (0.56× vs uncompressed)
+quality_aggregation,VeryLarge,1000000,zstd,443.617833,0.5597,2254192.52
+
+  Scale: Huge (10000000 sequences)
+  [ 52/ 54] uncompressed ...  2079.19ms  (1.00× vs uncompressed)
+quality_aggregation,Huge,10000000,uncompressed,2079.190250,1.0000,4809564.69
+  [ 53/ 54] gzip         ...  5909.10ms  (0.35× vs uncompressed)
+quality_aggregation,Huge,10000000,gzip,5909.101375,0.3519,1692304.69
+  [ 54/ 54] zstd         ...  4497.07ms  (0.46× vs uncompressed)
+quality_aggregation,Huge,10000000,zstd,4497.072459,0.4623,2223668.86
+
+═══════════════════════════════════════════════════════════════════
+✅ Hardware Compression Pilot Complete
+
+📊 Summary:
+   - Total experiments: 54
+   - Operations tested: 3
+   - Compression algorithms: 3
+   - Scales tested: 6
+
