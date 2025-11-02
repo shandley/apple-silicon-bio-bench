@@ -18,6 +18,10 @@ serde_json.workspace = true
 [target.'cfg(target_os = "macos")'.dependencies]
 asbb-gpu = { path = "../asbb-gpu", optional = true }
 
+# Accelerate framework for AMX support (macOS only)
+[target.'cfg(all(target_os = "macos", target_arch = "aarch64"))'.dependencies]
+accelerate-src = "0.3"
+
 [features]
 default = []
 gpu = ["asbb-gpu"]

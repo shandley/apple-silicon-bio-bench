@@ -438,55 +438,81 @@ impl ExecutionEngine {
 
         pool.install(|| {
             eprintln!("DEBUG: Inside pool.install, about to start par_iter...");
+
+            // Use for_each instead of try_for_each to handle errors gracefully
+            // This allows experiments to fail individually without stopping the entire batch
             incomplete
                 .par_iter()
                 .enumerate()
-                .try_for_each(|(i, experiment)| -> Result<()> {
+                .for_each(|(i, experiment)| {
                     if i == 0 {
                         eprintln!("DEBUG: Starting first experiment: {} with {}",
                             experiment.operation, experiment.hardware_config_id);
                     }
-                    // Run experiment
-                    let result = self.run_experiment(
+
+                    // Run experiment with error handling
+                    match self.run_experiment(
                         experiment,
                         &registry_ref,
                         &config_clone,
-                    )?;
-                    if i == 0 {
-                        eprintln!("DEBUG: First experiment completed successfully");
-                    }
+                    ) {
+                        Ok(result) => {
+                            if i == 0 {
+                                eprintln!("DEBUG: First experiment completed successfully");
+                            }
 
-                    // Store result
-                    {
-                        let mut results = results_ref.lock().unwrap();
-                        results.push(result);
-                    }
+                            // Store result
+                            {
+                                let mut results = results_ref.lock().unwrap();
+                                results.push(result);
+                            }
 
-                    // Mark completed
-                    {
-                        let mut checkpoint = checkpoint_ref.lock().unwrap();
-                        checkpoint.mark_completed(experiment.id.clone());
-                    }
+                            // Mark completed
+                            {
+                                let mut checkpoint = checkpoint_ref.lock().unwrap();
+                                checkpoint.mark_completed(experiment.id.clone());
+                            }
 
-                    // Update progress
-                    if let Some(ref pb) = progress {
-                        pb.inc(1);
-                        pb.set_message(format!(
-                            "Running: {} with {}",
-                            experiment.operation, experiment.hardware_config_id
-                        ));
-                    }
+                            // Update progress
+                            if let Some(ref pb) = progress {
+                                pb.inc(1);
+                                pb.set_message(format!(
+                                    "Running: {} with {}",
+                                    experiment.operation, experiment.hardware_config_id
+                                ));
+                            }
 
-                    // Checkpoint periodically
-                    if (i + 1) % checkpoint_interval == 0 {
-                        let checkpoint = checkpoint_ref.lock().unwrap();
-                        let checkpoint_path = self.output_dir.join(&self.config.output.checkpoint_file);
-                        checkpoint.save(&checkpoint_path)?;
-                    }
+                            // Checkpoint periodically
+                            if (i + 1) % checkpoint_interval == 0 {
+                                if let Ok(checkpoint) = checkpoint_ref.lock() {
+                                    let checkpoint_path = self.output_dir.join(&self.config.output.checkpoint_file);
+                                    if let Err(e) = checkpoint.save(&checkpoint_path) {
+                                        eprintln!("WARNING: Failed to save checkpoint: {}", e);
+                                    }
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            // Log error but continue processing other experiments
+                            eprintln!("ERROR: Experiment {} ({} with {}) failed: {}",
+                                experiment.id,
+                                experiment.operation,
+                                experiment.hardware_config_id,
+                                e
+                            );
 
-                    Ok(())
-                })
-        })?;
+                            // Still update progress bar
+                            if let Some(ref pb) = progress {
+                                pb.inc(1);
+                                pb.set_message(format!(
+                                    "FAILED: {} with {}",
+                                    experiment.operation, experiment.hardware_config_id
+                                ));
+                            }
+                        }
+                    }
+                });
+        });
 
         // Final checkpoint save
         let checkpoint = self.checkpoint.lock().unwrap();
