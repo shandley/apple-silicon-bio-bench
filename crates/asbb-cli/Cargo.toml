@@ -102,3 +102,7 @@ path = "src/run_level1.rs"
 [[bin]]
 name = "test-single-experiment"
 path = "src/test_single_experiment.rs"
+
+[[bin]]
+name = "asbb-pilot-amx"
+path = "src/pilot_amx.rs"

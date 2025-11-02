@@ -2,29 +2,28 @@
 
 **Project**: Apple Silicon Bio Bench - Systematic Performance Characterization
 **Started**: October 30, 2025
-**Last Updated**: November 1, 2025
+**Last Updated**: November 2, 2025
 
 ---
 
 ## Quick Stats
 
-**Total Entries**: 14 (including 1 checkpoint, 2 implementations)
-**Experiments Run**: 824 total (Phase 1 complete)
-  - Phase 1 NEON: 120 (10 operations × 6 scales × 2 backends)
+**Total Entries**: 15 (including 1 checkpoint, 2 implementations)
+**Experiments Run**: 848 total (5/9 dimension pilots complete)
+  - Phase 1 NEON: 60 (10 operations × 6 scales)
   - Phase 1 GPU: 32 (4 operations × 8 scales)
   - Phase 2 Encoding: 72 (2 operations × 6 backends × 6 scales)
-  - Phase 1 Parallel: 600 (10 operations × 10 configs × 6 scales)
+  - Phase 1 Parallel: 720 (10 operations × 12 configs × 6 scales)
+  - **Phase 1 AMX: 24 (edit_distance × 4 backends × 6 scales)** ← New
 **Operations Implemented**: 20 (✅ **ALL OPERATIONS COMPLETE** for Level 1/2)
   - Phase 1: base_counting, gc_content, at_content, reverse_complement, sequence_length, quality_aggregation, complexity_score, quality_filter, length_filter, n_content
   - Level 1/2: sequence_masking, hamming_distance, quality_statistics, kmer_counting, translation, minhash_sketching, kmer_extraction, edit_distance, adapter_trimming, fastq_parsing
-**Dimensions Completed**: ✅ **4 of 4 testable dimensions (PHASE 1 COMPLETE)**
+**Dimensions Completed**: ✅ **5 of 9 dimension pilots**
   - ✅ NEON SIMD, ✅ GPU Metal, ✅ 2-bit Encoding, ✅ Parallel/Threading
-  - ⏸️ AMX (deferred, requires matrix operations)
-  - ⏸️ Neural Engine (deferred, requires ML operations)
-  - ⏸️ Hardware Compression (deferred, requires streaming architecture)
-  - ✅ GCD/QoS (complete via Parallel dimension evidence)
-**Rules Derived**: 15+ (NEON, GPU, Parallel, Encoding, Core Assignment)
-**Phase 1 Status**: ✅ **COMPLETE** (Nov 1, 2025)
+  - ✅ **AMX Matrix Engine** ← New (Nov 2: AMX does NOT help sequence ops)
+  - ⏳ Neural Engine, ⏳ Hardware Compression, ⏳ GCD/QoS, ⏳ M5 GPU Neural Accel
+**Rules Derived**: 20+ (NEON, GPU, Parallel, Encoding, Core Assignment, **AMX: Skip**)
+**Systematic Pilot Status**: 5/9 complete (DO NOT attempt Level 1/2 until 9/9)
 **Level 1/2 Operations**: ✅ **COMPLETE** (Nov 1, 2025 - 20/20 operations)
 
 ---

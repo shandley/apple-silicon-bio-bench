@@ -1,6 +1,6 @@
 # Individual Dimension Pilot Checkpoint
 
-**Date**: November 2, 2025
+**Date**: November 2, 2025 (Updated: AMX complete)
 **Purpose**: Track progress on systematic dimension pilots and prevent premature automation
 
 ---
@@ -23,7 +23,7 @@
 
 ## Pilot Status Tracker
 
-### ✅ Completed Pilots (4/9)
+### ✅ Completed Pilots (5/9)
 
 #### 1. NEON SIMD Dimension ✅
 - **Experiments**: 60 (10 operations × 6 scales)
@@ -53,23 +53,19 @@
 - **Data**: results/parallel_dimension_raw_20251031_152922.csv
 - **Documentation**: PENDING (needs analysis)
 
+#### 5. AMX Matrix Engine Dimension ✅
+- **Experiments**: 24 (edit_distance × 4 backends × 6 scales)
+- **Date**: November 2, 2025
+- **Key Finding**: AMX does NOT provide speedup (0.91-0.93× vs NEON)
+- **Data**: results/phase1_amx_dimension/amx_pilot_raw_20251102_090714.csv
+- **Documentation**: results/phase1_amx_dimension/amx_pilot_summary.md
+- **Optimization Rule**: Use NEON + parallel, skip AMX
+
 ---
 
-### ⏳ Remaining Pilots (5/9)
+### ⏳ Remaining Pilots (4/9)
 
-#### 5. AMX Matrix Engine Dimension ⏳ **← CURRENT (Nov 2, 2025)**
-- **Experiments**: TBD (~240 planned)
-- **Operations**: Focus on matrix-amenable operations
-  - edit_distance (Smith-Waterman as matrix ops)
-  - quality_statistics (position weight matrices)
-  - alignment operations
-  - hamming_distance (can be formulated as matrix)
-- **Configurations**: TBD (AMX enabled/disabled, various matrix sizes)
-- **Scales**: 6 standard (100, 1K, 10K, 100K, 1M, 10M)
-- **Expected Duration**: 1-2 days
-- **Expected Insights**: Novel matrix-based optimizations for Apple Silicon
-
-#### 6. Neural Engine Dimension ⏳
+#### 6. Neural Engine Dimension ⏳ **← NEXT**
 - **Experiments**: TBD (~240 planned)
 - **Operations**: ML-amenable operations
   - sequence_classification
@@ -156,8 +152,10 @@ For each pilot to be considered **complete**, it must have:
 
 ---
 
-**Current Status**: 4/9 pilots complete
-**Next Action**: AMX Matrix Engine pilot (240 experiments)
+**Current Status**: 5/9 pilots complete ✅
+**Next Action**: Neural Engine pilot (240 experiments) **← NEXT**
 **DO NOT**: Attempt Level 1/2 until 9/9 complete
+
+**Recent Completion** (Nov 2): AMX pilot - Found AMX does NOT help sequence ops (critical negative finding!)
 
 **Last Updated**: November 2, 2025
