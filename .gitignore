@@ -18,6 +18,9 @@ datasets/**/*.fastq
 datasets/**/*.fq
 datasets/**/*.fa.gz
 datasets/**/*.fq.gz
+datasets/**/*.zst
+datasets/**/*.fa.zst
+datasets/**/*.fq.zst
 
 # Results (use Git LFS for Parquet files)
 # results/**/*.parquet  # Uncomment if not using Git LFS
