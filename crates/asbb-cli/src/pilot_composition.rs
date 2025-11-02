@@ -38,7 +38,6 @@ use asbb_ops::{
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::path::Path;
 use std::time::Instant;
 
 /// Backend configuration for composition testing
@@ -258,7 +257,7 @@ fn execute_operation(
             }
         },
         "sequence_length" => {
-            let op = SequenceLength::new();
+            let op = SequenceLength;
             match backend {
                 Backend::Naive => { op.execute_naive(data)?; },
                 Backend::Neon => { op.execute_neon(data)?; },
@@ -267,7 +266,7 @@ fn execute_operation(
             }
         },
         "at_content" => {
-            let op = ATContent::new();
+            let op = ATContent;
             match backend {
                 Backend::Naive => { op.execute_naive(data)?; },
                 Backend::Neon => { op.execute_neon(data)?; },
@@ -276,7 +275,7 @@ fn execute_operation(
             }
         },
         "n_content" => {
-            let op = NContent::new();
+            let op = NContent;
             match backend {
                 Backend::Naive => { op.execute_naive(data)?; },
                 Backend::Neon => { op.execute_neon(data)?; },
