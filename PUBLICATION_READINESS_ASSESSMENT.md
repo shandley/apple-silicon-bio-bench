@@ -16,6 +16,70 @@
 
 ---
 
+## Realistic Assessment: What We Actually Discovered
+
+### The Core Finding: ARM NEON is the Main Story
+
+After 1,070 experiments, the data tells a clear (and somewhat surprising) story:
+
+**What works:**
+- **ARM NEON SIMD**: 1.1-85× speedup (the dominant optimization)
+- **Standard parallelization**: 4-6× speedup (portable, not Apple-specific)
+- **Composition**: Sublinear (0.428 factor) due to memory bandwidth saturation
+
+**What doesn't work:**
+- **AMX Matrix Engine**: 0.91-0.93× (7-9% slower, FFI overhead)
+- **Hardware Compression**: 0.30-0.67× (2-3× slower)
+- **2-bit Encoding**: 0.23-0.56× (2-4× slower)
+- **GPU**: Only 1.8-2.7× in narrow cases (complexity ≥0.55, scale ≥50K)
+
+**The uncomfortable truth:**
+- NEON is **ARM standard**, not Apple Silicon-specific (works on Graviton, Ampere, etc.)
+- Apple's **specialized hardware features** (AMX, unified memory magic) provide little benefit
+- The **main bottleneck** is memory bandwidth, not CPU cores
+- **Apple Silicon is competitive, but not revolutionary** for bioinformatics primitives
+
+### What This Means for Publication
+
+**Honest framing:**
+- This is a study of **ARM SIMD optimization for bioinformatics**, not "Apple Silicon magic"
+- Apple Silicon is a **convenient testbed** (unified memory simplifies GPU testing, Metal tooling)
+- **Findings generalize to ARM platforms** (Graviton, Ampere, Raspberry Pi, etc.)
+- **Value is in systematic characterization** and **negative findings**, not breakthrough performance
+
+**Publication title should be:**
+✅ "Systematic Characterization of ARM SIMD Optimization for Bioinformatics Sequence Operations on Apple Silicon"
+
+NOT:
+❌ "Apple Silicon Revolutionizes Bioinformatics Performance"
+❌ "Unlocking Apple Silicon's Potential for Computational Biology"
+
+**Key contributions (realistic):**
+1. **First systematic study** of ARM NEON for bioinformatics primitives
+2. **Negative findings documented** (AMX, compression, encoding - prevents wasted effort)
+3. **Composition interference quantified** (0.428 factor, memory bandwidth bottleneck identified)
+4. **Portable optimization rules** for ARM ecosystem (not Apple-specific)
+
+### Publication Value: Good Science, Not Revolutionary Performance
+
+**What makes this publication-worthy:**
+- ✅ **Systematic methodology** (exhaustive testing, reproducible protocols)
+- ✅ **Negative findings** (rare and valuable in HPC literature)
+- ✅ **Composition analysis** (identifies memory bandwidth as bottleneck)
+- ✅ **Honest assessment** (what works, what doesn't, and why)
+- ✅ **Practical guidance** (actionable optimization rules)
+
+**What this is NOT:**
+- ❌ Demonstration of Apple Silicon superiority
+- ❌ Revolutionary performance breakthrough
+- ❌ Evidence that specialized hardware (AMX, Neural Engine) helps bioinformatics
+- ❌ Proof that unified memory architecture transforms performance
+
+**The value proposition:**
+This is **good science** with **practical utility**. The systematic characterization, negative findings, and composition interference analysis are valuable contributions to the field. The fact that ARM NEON (not Apple-specific magic) is the dominant optimization is itself an important finding.
+
+---
+
 ## Current Experimental Coverage
 
 ### Completed Dimension Pilots: 7/9
@@ -418,7 +482,7 @@ But for at_content @ Medium scale:
    - Conclusion: Contributions, practical impact, future work
 
 **THEN**:
-- Submit to venue: *BMC Bioinformatics*, *GigaScience*, or *PeerJ Computer Science*
+- Submit to appropriate venue (see Target Venues below)
 - Release ruleset as crate: `asbb-rules` to crates.io (with composition factors)
 - Publish data: Zenodo or figshare (1,070 experiments)
 
@@ -426,6 +490,51 @@ But for at_content @ Medium scale:
 - Real workload validation (50 experiments, 6-10 hours)
 - Cross-hardware validation (M1/M2/M3 spot-checks, test bandwidth hypothesis)
 - M4 Max/Ultra validation (higher bandwidth, test if composition improves)
+
+### Target Venues and Framing
+
+Given the **realistic assessment** that this is about ARM SIMD optimization (not Apple Silicon magic), target venues accordingly:
+
+**Primary targets:**
+1. **BMC Bioinformatics** - Methodology paper
+   - Frame: "Systematic characterization of ARM SIMD for bioinformatics"
+   - Emphasize: Methodology, negative findings, portable to ARM ecosystem
+
+2. **PeerJ Computer Science** - Systems/performance paper
+   - Frame: "Performance characterization and optimization rules"
+   - Emphasize: Practical guidance, composition interference, memory bandwidth bottleneck
+
+3. **GigaScience** - Data-intensive science
+   - Frame: "Large-scale experimental characterization (1,070 experiments)"
+   - Emphasize: Open data, reproducibility, systematic approach
+
+**Alternative targets:**
+4. **Journal of Computational Biology** - Computational methods
+5. **PLOS Computational Biology** - If framed as methods/tools paper
+
+**Key messaging for all venues:**
+- ✅ "First systematic study of ARM SIMD for bioinformatics primitives"
+- ✅ "Negative findings prevent wasted effort in the field"
+- ✅ "Composition interference identifies memory bandwidth bottleneck"
+- ✅ "Portable optimization rules for ARM ecosystem (Graviton, Ampere, Apple Silicon)"
+- ❌ Avoid: "Revolutionary performance", "Apple Silicon breakthrough", "Transformative"
+
+### Target Audience
+
+**Primary audience:**
+- Bioinformatics tool developers optimizing for ARM (Graviton, Apple Silicon, Ampere)
+- HPC researchers studying memory bandwidth bottlenecks
+- Systems researchers interested in optimization composition effects
+
+**Secondary audience:**
+- Apple Silicon users running bioinformatics tools
+- Cloud bioinformatics practitioners (ARM instances increasingly common)
+- Developers evaluating ARM vs x86 for bioinformatics workloads
+
+**NOT the audience:**
+- General users looking for "faster Mac performance"
+- Apple marketing materials
+- Claims that Apple Silicon is superior to x86 + discrete GPU
 
 ---
 

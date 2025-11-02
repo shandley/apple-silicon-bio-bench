@@ -26,7 +26,9 @@
 
 ## Overview
 
-Apple Silicon Bio Bench (ASBB) is a scientific framework for systematically exploring the performance landscape of bioinformatics sequence operations across Apple Silicon hardware configurations. Through rigorous experimental design and statistical analysis, ASBB derives optimization rules that can be applied automatically to ANY sequence analysis tool.
+Apple Silicon Bio Bench (ASBB) is a scientific framework for systematically exploring the performance landscape of bioinformatics sequence operations on Apple Silicon. Through rigorous experimental design (1,070+ experiments) and statistical analysis, ASBB identifies what optimizations work (ARM NEON SIMD, parallelization), what doesn't (AMX, compression, GPU), and why (memory bandwidth bottleneck).
+
+**Honest assessment**: This is primarily a study of **ARM SIMD optimization** for bioinformatics, with Apple Silicon serving as a convenient testbed. The dominant optimization (NEON, 1.1-85× speedup) is standard ARM, not Apple-specific. Apple's specialized hardware features (AMX, unified memory magic) provide marginal or negative benefit. See [REALISTIC_VALUE_ASSESSMENT.md](REALISTIC_VALUE_ASSESSMENT.md) for details.
 
 ### The Vision
 
