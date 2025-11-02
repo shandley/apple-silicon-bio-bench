@@ -305,9 +305,33 @@ Prediction Accuracy: 72.2% within 20% error
 
 ---
 
+## Dimension 6: AMX (Apple Matrix Coprocessor) - Negative Finding ⏸️
+**Status**: Tested but not beneficial | **Experiments**: 24 (edit_distance operation)
+
+### Key Finding: AMX Does Not Help Current Operations
+
+We evaluated AMX on matrix-amenable operations (edit_distance using Wagner-Fischer dynamic programming) and found **no benefit**:
+
+**AMX Performance** (VeryLarge scale, 1M sequences):
+- **Naive**: 140.4ms baseline
+- **NEON**: 122.9ms (1.19× speedup)
+- **AMX**: 134.3ms (0.92× vs NEON) - **9% slower than NEON**
+- **Parallel AMX**: 35.6ms (4.10× speedup from parallelism, not AMX itself)
+
+**Root Cause**: Our primitive operations lack true matrix structure. Even edit_distance, which uses dynamic programming matrices, doesn't benefit from AMX because:
+1. Matrix operations are interleaved with conditional logic
+2. Small matrix sizes (sequence length) don't amortize AMX overhead
+3. NEON is sufficient for the vectorizable portions
+
+**Conclusion**: AMX deferred to future work with true matrix operations (Smith-Waterman alignment, Multiple Sequence Alignment, Position Weight Matrix scoring).
+
+**For Manuscript**: "We evaluated AMX on edit_distance (dynamic programming) and observed no benefit (0.92× vs NEON) due to our operations' lack of pure matrix structure. AMX remains promising for future alignment operations but is not applicable to our primitive operation set."
+
+---
+
 ## Cross-Dimension Insights
 
-### Finding 1: Optimization Composition (Multiplicative)
+### Finding 1: Optimization Composition (Multiplicative) - VALIDATED ✅
 
 **NEON + Parallel = Multiplicative Speedup** (for independent operations):
 
@@ -317,7 +341,26 @@ Prediction Accuracy: 72.2% within 20% error
 | GC Content | 42.64× | 5.36× | ~228× | 42.64 × 5.36 |
 | AT Content | 26.78× | 5.36× | ~143× | 26.78 × 5.36 |
 
-**Validated Experimentally**: Composition validation experiments show composition ratios 0.5-1.0 at VeryLarge scale
+**Experimental Validation** (36 experiments, 8 operations):
+
+**Composition Ratio = Measured Combined / (NEON × Parallel)** at VeryLarge scale (1M sequences):
+
+| Operation | Composition Ratio | Interpretation |
+|-----------|------------------|----------------|
+| **AT Content** | **0.999** | Perfect multiplicative (99.9%!) |
+| **GC Content** | **1.01** | Perfect multiplicative (101%) |
+| **N-Content** | **0.91** | Excellent (91% of predicted) |
+| **Base Counting** | **1.78** | Super-linear! (178% of predicted) |
+| Quality Filter | 0.54 | Moderate (54%, NEON is only 1×) |
+| Reverse Complement | 0.41 | Lower (41%, NEON is only 1×) |
+
+**Key Pattern**: Operations with strong NEON speedup (>10×) achieve **near-perfect multiplicative composition** (0.9-1.8×) at large scales (>100K sequences).
+
+**Scale Dependency**:
+- Small scale (<10K): Composition ratio 0.01-0.2 (overhead dominates)
+- Large scale (>100K): Composition ratio 0.9-1.8 (multiplicative holds)
+
+**Validation Status**: ✅ **CONFIRMED** - NEON × Parallel composition is multiplicative at scale for operations with good NEON speedup.
 
 ### Finding 2: NEON Effectiveness Predicts GPU Benefit
 
