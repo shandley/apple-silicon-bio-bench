@@ -134,49 +134,77 @@ For EACH hardware dimension, test:
 8. **GCD/QoS** (Grand Central Dispatch optimization)
 9. **M5 GPU Neural Accelerators** (if available)
 
-### DO NOT Jump to Level 1/2 Until All Pilots Complete
+### ⛔ DO NOT Jump to Level 1/2 Until ALL Pilots Complete ⛔
 
-**Anti-pattern to avoid**:
+**CRITICAL CHECKPOINT** (November 2, 2025):
+**We attempted Level 1/2 prematurely on Nov 1-2** and encountered repeated crashes because we skipped 5 remaining dimension pilots. This violated the systematic methodology and wasted significant time debugging a premature automation harness.
+
+**Anti-pattern to avoid** (we fell into this trap):
 > "We have enough data, let's build the automated harness now and test everything at once"
 
-**Why this is wrong**:
-- Individual pilots reveal unexpected patterns (NEON effectiveness, complexity thresholds)
+**Why this is WRONG** (lessons from Nov 1-2 Level 1/2 failure):
+- Individual pilots reveal unexpected patterns (NEON effectiveness, complexity thresholds, E-core competitiveness)
 - Automation without understanding leads to data without insight
+- Level 1/2 combines ALL dimensions → crashes are hard to debug
 - Each dimension deserves the same exhaustive treatment that found GPU patterns
+- **Skipping pilots = missing discoveries** (we don't know what AMX, Neural Engine, etc. might reveal)
 
-### Correct Sequence
+**Lessons learned from Level 1/2 premature attempt**:
+- Harness crashed 4 times at experiment 211 (unable to complete)
+- Debugging took 5+ hours with no clear resolution
+- Would have been better spent on AMX pilot (240 experiments, 1-2 days)
+- **The methodology exists for a reason - follow it**
 
-1. ✅ Design and implement 10 primitive operations
-2. ✅ Test NEON dimension exhaustively → Document findings
-3. ✅ Test 2-bit encoding exhaustively → Document findings
-4. ✅ Test GPU dimension exhaustively → Document findings
-5. ⏳ **Test parallel/threading exhaustively → Document findings** ← **CURRENT**
-6. ⏳ Test AMX exhaustively → Document findings
+### ✅ Correct Sequence (DO NOT SKIP STEPS)
+
+1. ✅ Design and implement 20 primitive operations
+2. ✅ Test NEON dimension exhaustively → Document findings (60 experiments, patterns found)
+3. ✅ Test 2-bit encoding exhaustively → Document findings (72 experiments, overhead quantified)
+4. ✅ Test GPU dimension exhaustively → Document findings (32 experiments, GPU win found)
+5. ✅ Test parallel/threading exhaustively → Document findings (720 experiments, E-core benefits found)
+6. ⏳ **Test AMX exhaustively → Document findings** ← **CURRENT (Nov 2, 2025)**
 7. ⏳ Test Neural Engine exhaustively → Document findings
 8. ⏳ Test hardware compression exhaustively → Document findings
 9. ⏳ Test GCD/QoS exhaustively → Document findings
-10. ✅ **THEN** build Level 1/2 automated harness
-11. ✅ **THEN** run full factorial experiments
-12. ✅ **THEN** statistical analysis and rule extraction
+10. ⏳ **THEN** build Level 1/2 automated harness (only after steps 1-9 complete)
+11. ⏳ **THEN** run full factorial experiments
+12. ⏳ **THEN** statistical analysis and rule extraction
 
-### For Claude: Reminders
+**Current Status**: 4/9 dimension pilots complete. **DO NOT attempt Level 1/2 until all 9 are done.**
+
+### For Claude: MANDATORY Reminders (Nov 2, 2025)
+
+**🚨 BEFORE suggesting Level 1/2 🚨**:
+1. ❌ STOP immediately
+2. ❌ Count completed dimension pilots (current: 4/9)
+3. ❌ Ask: "Are ALL 9 dimension pilots complete?"
+4. ❌ If answer is NO → **DO NOT suggest Level 1/2**
+5. ✅ Instead suggest the NEXT individual pilot
 
 **When tempted to suggest "moving on to Level 1/2"**:
-- ❌ STOP - Check if all individual pilots are complete
-- ❌ Don't suggest automation until ALL dimensions tested
-- ✅ Suggest the NEXT individual pilot instead
-- ✅ Use the same exhaustive approach (N ops × M configs × K scales)
+- ❌ STOP - Check if all individual pilots are complete (we failed this on Nov 1-2)
+- ❌ Don't suggest automation until ALL 9 dimensions tested
+- ✅ Suggest the NEXT individual pilot instead (currently: AMX)
+- ✅ Use the same exhaustive approach (10 ops × 4 configs × 6 scales = 240 experiments)
 
-**When user asks "what's next after GPU?"**:
-- ✅ Answer: "Parallel/threading dimension pilot with same exhaustive testing"
-- ❌ Don't answer: "Let's build the Level 1/2 automated harness"
+**When user asks "what's next after parallel/threading?"**:
+- ✅ Answer: "AMX Matrix Engine dimension pilot with exhaustive testing"
+- ❌ Don't answer: "Let's build the Level 1/2 automated harness" (we made this mistake)
 
-**Success pattern**:
+**Remaining pilots** (as of Nov 2, 2025):
+- Next: AMX Matrix Engine
+- Then: Neural Engine
+- Then: Hardware Compression
+- Then: GCD/QoS
+- Then: M5 GPU Neural Accelerators (if available)
+- **ONLY THEN**: Level 1/2
+
+**Success pattern** (proven 4/4 times):
 ```
 Individual Pilot → Unexpected Pattern Discovered → Document Thoroughly → Next Pilot
 ```
 
-**This approach has worked perfectly. Don't abandon it.**
+**This approach has worked perfectly. We violated it on Nov 1-2 and wasted time. Don't do it again.**
 
 ---
 
@@ -867,11 +895,11 @@ When starting new session:
 
 ---
 
-## Current Session Status (November 1, 2025)
+## Current Session Status (November 2, 2025)
 
 ### What We Accomplished This Session
 
-**Parallel/Threading Dimension - COMPLETE ✅**:
+**Parallel/Threading Dimension - COMPLETE ✅** (October 31, 2025):
 
 1. **720 experiments completed** (systematic testing):
    - 10 operations × 12 configurations × 6 scales
@@ -886,32 +914,35 @@ When starting new session:
    - **Pattern**: Higher complexity operations benefit more from parallelism
    - **E-cores effective** for high-complexity operations at large scale
 
-**Level 1/2 Automated Harness - CREATED BUT BLOCKED**:
+**Level 1/2 Premature Attempt - ABANDONED ❌** (November 1-2, 2025):
 
-1. **Created run-level1 binary** (`crates/asbb-cli/src/run_level1.rs`):
+**MISTAKE**: We attempted to run Level 1/2 before completing all individual dimension pilots, violating the systematic methodology.
+
+1. **Created run-level1 binary** (premature):
    - Registered all 20 operations with metadata
    - Integrated with ExecutionEngine for automation
-   - Designed for 2,640 experiments (20 ops × 22 configs × 6 scales)
+   - Designed for 2,200 experiments (20 ops × 22 configs × 5 scales)
 
-2. **GPU backend compatibility issue discovered**:
-   - ExecutionEngine generates naive Cartesian product (no backend filtering)
-   - Attempted to run `gc_content` with GPU config → Error
-   - Only 1 operation supports GPU: `complexity_score`
-   - **Impact**: 342 invalid experiments (19 ops × 3 GPU configs × 6 scales)
-   - **Fix**: Commented out 3 GPU configs in `config.toml`
-   - **Deferred**: Need backend compatibility filter (see `ISSUES.md`)
+2. **Multiple crashes encountered**:
+   - Run #1: Completed 71 experiments → crashed (no error)
+   - Run #2: Completed 140 more (211 total) → crashed (no error)
+   - Run #3 (with caffeinate): 0 new → crashed immediately
+   - Run #4 (with error handling fix): 0 new → crashed after 3 minutes
+   - **Pattern**: Always stops at experiment 211
+   - **Root cause**: Unknown (likely segfault in specific operation/config combo)
+   - **Time wasted**: 5+ hours debugging, no resolution
 
-3. **Memory pressure issues on M4 MacBook Pro**:
-   - 8 parallel workers × 3GB (10M sequences) = 24GB demand
-   - System has 24GB RAM but only ~20GB available after OS
-   - Process killed twice by system (OOM)
-   - **Observation**: 94% swap usage at crash time
-   - **Solution**: Skip "huge" (10M) scale temporarily, proceed with 5 scales
+3. **Decision**: Abandon Level 1/2 and return to systematic pilot approach
+   - Level 1/2 is appropriate AFTER all 9 dimension pilots complete
+   - Currently: 4/9 pilots complete
+   - Remaining: AMX, Neural Engine, Hardware Compression, GCD/QoS, M5 GPU
+   - **Each pilot reveals unexpected patterns** (proven 4/4 times)
 
-4. **Config modifications prepared**:
-   - GPU configs commented out (see `experiments/level1_primitives/config.toml`)
-   - Ready to comment out "huge" scale after reboot
-   - Reduces to 2,200 experiments (still excellent coverage)
+4. **Lesson learned**:
+   - **Follow the methodology** - it exists for good reasons
+   - Individual pilots are tractable (240 experiments each)
+   - Level 1/2 is complex and hard to debug
+   - **Don't skip steps**
 
 **Mac Studio Hardware Research**:
 
@@ -1028,7 +1059,8 @@ Total Pending: 2,200 (Level 1/2 harness)
 
 ---
 
-**Status**: 4 pilot dimensions complete (NEON, Encoding, GPU, Parallel), Level 1/2 ready
-**Next**: Run Level 1/2 harness (2,200 experiments, 12-16 hours after reboot)
+**Status**: 4/9 pilot dimensions complete (NEON, Encoding, GPU, Parallel)
+**Next**: AMX Matrix Engine pilot (240 experiments, 1-2 days, systematic)
+**DO NOT**: Attempt Level 1/2 until all 9 pilots complete
 
-**Last Updated**: November 1, 2025
+**Last Updated**: November 2, 2025
