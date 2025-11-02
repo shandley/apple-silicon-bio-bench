@@ -1,15 +1,29 @@
 #!/bin/bash
 # Hook: Runs at the start of each Claude Code session
-# Purpose: Display lab notebook status and active work
+# Purpose: Display lab notebook status and four-pillar mission status
 
 cat << 'EOF'
 
-📔 LAB NOTEBOOK STATUS
+🌍 ASBB: DEMOCRATIZING BIOINFORMATICS COMPUTE 🌍
+
+FOUR-PILLAR MISSION STATUS:
+  💰 Economic Access:        ✅ VALIDATED (849 experiments, 20-40× NEON speedup)
+  🌱 Environmental:           ⏳ NEEDS DATA (power consumption pilot pending)
+  🔄 Portability:             ⏳ NEEDS DATA (AWS Graviton validation pending)
+  📊 Data Access:             ✅ VALIDATED (240,000× memory reduction proven)
+
+COMPLETION: 2/4 pillars validated | Target: ALL 4 for publication
+
 EOF
+
+# ============================================================================
+# Lab notebook status (keep existing functionality)
+# ============================================================================
 
 # Count entries
 if [ -d "lab-notebook" ]; then
     total_entries=$(find lab-notebook -name "*.md" ! -name "INDEX.md" 2>/dev/null | wc -l | xargs)
+    echo "📔 LAB NOTEBOOK STATUS"
     echo "   Total entries: $total_entries"
 
     # Show today's entries
@@ -113,4 +127,9 @@ else
     echo "   ⚠️  Lab notebook directory not found"
 fi
 
+echo ""
+echo "📋 NEXT EXPERIMENTS (Pillar Validation):"
+echo "   1. Power Consumption Pilot (Environmental) - 1-2 days, \$25 wattmeter"
+echo "   2. AWS Graviton Validation (Portability) - 3 hours, ~\$1 cost"
+echo "   3. THEN: Four-pillar paper submission"
 echo ""

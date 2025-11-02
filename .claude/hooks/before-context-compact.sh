@@ -1,37 +1,48 @@
 #!/bin/bash
 # Hook: Runs before context compaction
-# Purpose: Capture important findings and challenge thinking patterns
+# Purpose: Capture pillar-critical findings before memory compaction
 
 cat << 'EOF'
 
 ⚠️  CONTEXT COMPACTION APPROACHING ⚠️
 
-BEFORE MEMORIES FADE - DOCUMENT:
-📝 Any exciting discoveries or unexpected results
-📝 Novel approaches that worked (or failed)
-📝 Performance cliffs, thresholds, or interaction effects
-📝 Open questions that need further exploration
-📝 "Aha moments" about Apple Silicon capabilities
+PILLAR-CRITICAL INFORMATION - ENSURE DOCUMENTED:
+📝 Economic: Performance numbers that prove consumer hardware viability
+📝 Environmental: Energy consumption measurements (power pilot data)
+📝 Portability: Cross-platform validation results (Mac → Graviton → etc.)
+📝 Data Access: Memory footprint data, streaming performance
 
-SELF-AUDIT QUESTIONS:
-🔍 In recent work, did I explore Apple Silicon-native approaches?
-🔍 Or did I fall back into traditional x86 thinking?
-🔍 Did I test NEON-native, Metal-native, heterogeneous, novel implementations?
-🔍 Did I document negative results (what DIDN'T work)?
-🔍 Am I treating this as science (exploration) or engineering (solutions)?
+FOUR-PILLAR VALIDATION CHECKLIST:
+🔍 Economic (✅ Validated): Do we have speedup numbers for key operations?
+🔍 Environmental (⏳ Pending): Do we have power consumption data (Wh per analysis)?
+🔍 Portability (⏳ Pending): Have we validated on non-Mac ARM platforms?
+🔍 Data Access (✅ Validated): Do we have memory footprint characterization?
 
-IF YOU'VE BEEN IMPLEMENTING:
-✓ Document any "traditional approach worked better than expected" findings
-✓ Document any "novel approach failed but we learned why" insights
-✓ Update NEXT_STEPS.md with discoveries or open questions
-✓ Consider if findings should be added to CLAUDE.md lessons
+IMPACT CLAIMS - MUST BE BACKED BY DATA:
+🔍 "300× less energy" - Do we have measurements to support this?
+🔍 "Works across ARM ecosystem" - Have we tested beyond Mac?
+🔍 "240,000× memory reduction" - Is this experimentally validated? (YES)
+🔍 "$2-4K replaces $100K+ HPC" - Do we have performance parity data? (YES)
 
-PATTERNS TO WATCH FOR (RED FLAGS):
-🚫 "Let's just use a hash table" (Did we explore NEON hashing, Metal tile memory, AMX?)
-🚫 "GPU overhead is too high" (Did we test with unified memory zero-copy?)
-🚫 "This is obviously faster" (Did we MEASURE it?)
-🚫 "Traditional approach is fine" (Did we explore novel alternatives?)
+IF YOU'VE BEEN EXPERIMENTING:
+✓ Ensure pillar validation data is in lab notebook entries
+✓ Update CURRENT_STATUS.md with pillar completion status
+✓ Document any limitations or caveats discovered
+✓ Note which pillar each experiment validates
 
-💡 Use this moment to capture insights before they're lost to compaction!
+IF YOU'VE BEEN ANALYZING:
+✓ Ensure findings are saved in results/ (not just chat)
+✓ Update phase analysis documents if new insights emerged
+✓ Document statistical validation (p-values, confidence intervals)
+✓ Note which target audience each finding serves (LMIC, small labs, students, etc.)
+
+TARGET AUDIENCE REMINDERS:
+💡 LMIC researchers: Do findings reduce barrier to entry?
+💡 Small labs: Can they afford and deploy this?
+💡 Field researchers: Battery-powered, portable, no internet?
+💡 Students: Learning on consumer hardware, not HPC?
+💡 Diagnostic labs: In-house pathogen ID, no bioinformatics staff?
+
+💡 Use this moment to preserve pillar-critical insights before compaction!
 
 EOF

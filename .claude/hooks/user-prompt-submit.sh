@@ -1,43 +1,54 @@
 #!/bin/bash
 # Hook: Runs after user submits prompt, before Claude responds
-# Purpose: Reinforce core philosophy and challenge traditional thinking
+# Purpose: Reinforce four-pillar democratization mission
 
 cat << 'EOF'
 
-🧬 ASBB MISSION REMINDER 🧬
+🌍 DEMOCRATIZING BIOINFORMATICS COMPUTE 🌍
 
-CORE PHILOSOPHY - Apple Silicon First:
-• Resist x86 assumptions - Traditional patterns may NOT apply here
-• Explore novel approaches - Unified memory, Neural Engine, AMX, heterogeneous cores
-• Question everything - "What does Apple Silicon enable?" not "How did x86 do this?"
-• Document failures - "Neural Engine 0.8× slower" is valuable knowledge
+MISSION: Breaking down FOUR barriers that lock researchers out of genomics
 
-CRITICAL QUESTIONS TO ASK YOURSELF:
-❓ Am I falling back into traditional bioinformatics thinking?
-❓ Have I considered Apple Silicon-specific approaches?
-❓ Am I exploring NEON-native, Metal-native, heterogeneous options?
-❓ Am I documenting what DOESN'T work, not just what does?
+FOUR PILLARS - What We're Validating:
 
-FOR EVERY OPERATION IMPLEMENTATION:
-1. ✓ Traditional/naive (baseline)
-2. ✓ NEON-native (designed for SIMD, not ported)
-3. ✓ Metal-native (tile memory, unified memory)
-4. ✓ Heterogeneous (P-cores + E-cores + GCD)
-5. ✓ Novel (Neural Engine, AMX, hardware compression)
-6. ✓ M5: GPU Neural Accelerators (4× AI performance, ML on GPU)
-7. ✓ Measure & document ALL results (including failures)
+1. 💰 ECONOMIC ACCESS (✅ Validated)
+   • Consumer hardware ($2-4K) replaces $100K+ HPC clusters
+   • Mac Mini/Studio performance proven (849 experiments)
+   • ARM NEON: 20-40× speedup, portable across ecosystem
 
-THIS IS SCIENCE, NOT ENGINEERING:
-Goal = Universal understanding, not one-off solutions
-Goal = Systematic exploration, not ad-hoc optimization
-Goal = Novel discoveries, not benchmarking x86 ports
+2. 🌱 ENVIRONMENTAL SUSTAINABILITY (⏳ Needs validation)
+   • Claim: 300× less energy per analysis (0.5 Wh vs 150 Wh)
+   • Status: UNVALIDATED - power consumption pilot pending
+   • Impact: 7,475 tons CO₂/year saved if 10K labs adopt
 
-📖 See CLAUDE.md "Critical Philosophy: Think Apple Silicon First" for details
+3. 🔄 PORTABILITY (⏳ Needs validation)
+   • Claim: ARM NEON rules transfer (Mac → Graviton → Ampere → RPi)
+   • Status: UNVALIDATED - only tested on Mac
+   • Next: AWS Graviton cross-platform validation (~$1, 3 hours)
+
+4. 📊 DATA ACCESS (✅ Validated)
+   • Memory-efficient streaming: 240,000× reduction
+   • 5TB dataset analysis on 24GB laptop (proven)
+   • Unlocks 40+ petabytes of public data for reanalysis
+
+CURRENT PHASE: Pillar Validation (2/4 complete)
+
+TARGET AUDIENCE:
+✓ LMIC researchers (limited HPC access)
+✓ Small academic labs (teaching universities)
+✓ Field researchers (battery-powered genomics)
+✓ Diagnostic labs (in-house pathogen ID)
+✓ Students (learning on consumer hardware)
+
+CRITICAL QUESTIONS TO ASK:
+❓ Does this work advance one of the FOUR pillars?
+❓ Are we validating claims with experimental data?
+❓ Does this enable the underserved audiences above?
+❓ Are we documenting limitations honestly?
 
 EOF
 
 # ============================================================================
-# Lab notebook ENFORCEMENT (not just suggestion)
+# Lab notebook ENFORCEMENT (keep as-is)
 # ============================================================================
 
 USER_MESSAGE="$1"
@@ -71,7 +82,7 @@ LABEOF
     if [ $recent_entries -eq 0 ]; then
         cat << 'LABEOF2'
    📊 STATUS: No lab notebook entry created today
-      Next entry should be: YYYYMMDD-012-EXPERIMENT-dimension-name.md
+      Next entry should be: YYYYMMDD-020-EXPERIMENT-pillar-name.md
       (See lab-notebook/INDEX.md for next entry number)
 
 LABEOF2
@@ -93,9 +104,10 @@ if echo "$USER_MESSAGE" | grep -qiE "complete|finished|done|results|analyze.*dat
    ✓ Lab notebook entry exists and is complete
    ✓ Key findings documented in entry
    ✓ Raw data saved in lab-notebook/raw-data/YYYYMMDD-NNN/
-   ✓ Detailed analysis in results/phase1/ or results/phase2/
+   ✓ Detailed analysis in results/
    ✓ INDEX.md updated with this work
    ✓ Entry references protocols in experiments/
+   ✓ Which PILLAR does this validate? (Economic/Environmental/Portability/Data)
 
 LABEOF3
 fi
