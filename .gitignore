@@ -52,6 +52,9 @@ build/
 *.temp
 *.log
 
+# Large raw experiment logs
+results/**/powermetrics_*.txt
+
 # macOS
 .DS_Store
 .AppleDouble

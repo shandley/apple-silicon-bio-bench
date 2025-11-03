@@ -19,6 +19,7 @@ serde_json.workspace = true
 rand = "0.8"
 rand_chacha = "0.3"
 rayon.workspace = true
+chrono = "0.4"
 
 [features]
 default = []
@@ -119,3 +120,11 @@ path = "src/pilot_composition.rs"
 [[bin]]
 name = "asbb-pilot-memory"
 path = "src/pilot_memory_footprint.rs"
+
+[[bin]]
+name = "asbb-pilot-power"
+path = "src/pilot_power.rs"
+
+[[bin]]
+name = "asbb-pilot-graviton"
+path = "src/pilot_graviton.rs"

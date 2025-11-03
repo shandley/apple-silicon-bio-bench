@@ -1,0 +1,10 @@
+🔋 Power Consumption Pilot - Environmental Pillar Validation
+
+⚡ IMPORTANT: Ensure powermetrics is running in parallel:
+   sudo powermetrics --samplers cpu_power --sample-rate 100 > powermetrics_log.txt
+
+📊 Experiments: 3 operations × 4 configs × 2 scales = 24 total
+⏱️  Duration: Each experiment loops for 60 seconds (stable power measurement)
+📁 Output: CSV to stdout (redirect to file)
+
+Press ENTER to start...

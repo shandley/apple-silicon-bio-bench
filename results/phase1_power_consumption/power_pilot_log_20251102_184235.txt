@@ -1,0 +1,394 @@
+🔋 Power Consumption Pilot - Environmental Pillar Validation
+
+📊 Experiments: 3 operations × 4 configs × 2 scales = 24 total
+⏱️  Duration: Each experiment loops for 60 seconds (stable power measurement)
+
+Starting in 3 seconds...
+
+
+Loading dataset: Medium (10000 sequences)...
+✓ Loaded 10000 sequences
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 1/24
+Operation: base_counting
+Config: naive (Scalar, 1 thread (baseline))
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 8022
+  Sequences processed: 80220000
+  Throughput: 1336977 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 2/24
+Operation: base_counting
+Config: neon (NEON SIMD, 1 thread)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 134152
+  Sequences processed: 1341520000
+  Throughput: 22358644 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 3/24
+Operation: base_counting
+Config: neon_4t (NEON SIMD, 4 threads)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 332385
+  Sequences processed: 3323850000
+  Throughput: 55397349 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 4/24
+Operation: base_counting
+Config: neon_8t (NEON SIMD, 8 threads)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 315842
+  Sequences processed: 3158420000
+  Throughput: 52640198 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+Loading dataset: Large (100000 sequences)...
+✓ Loaded 100000 sequences
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 5/24
+Operation: base_counting
+Config: naive (Scalar, 1 thread (baseline))
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.2s
+  Iterations: 780
+  Sequences processed: 78000000
+  Throughput: 1299883 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 6/24
+Operation: base_counting
+Config: neon (NEON SIMD, 1 thread)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 11912
+  Sequences processed: 1191200000
+  Throughput: 19852070 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 7/24
+Operation: base_counting
+Config: neon_4t (NEON SIMD, 4 threads)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 40431
+  Sequences processed: 4043100000
+  Throughput: 67383843 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 8/24
+Operation: base_counting
+Config: neon_8t (NEON SIMD, 8 threads)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 54785
+  Sequences processed: 5478500000
+  Throughput: 91307295 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+Loading dataset: Medium (10000 sequences)...
+✓ Loaded 10000 sequences
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 9/24
+Operation: gc_content
+Config: naive (Scalar, 1 thread (baseline))
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 8655
+  Sequences processed: 86550000
+  Throughput: 1442498 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 10/24
+Operation: gc_content
+Config: neon (NEON SIMD, 1 thread)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 148426
+  Sequences processed: 1484260000
+  Throughput: 24737511 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 11/24
+Operation: gc_content
+Config: neon_4t (NEON SIMD, 4 threads)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 373559
+  Sequences processed: 3735590000
+  Throughput: 62259812 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 12/24
+Operation: gc_content
+Config: neon_8t (NEON SIMD, 8 threads)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 331727
+  Sequences processed: 3317270000
+  Throughput: 55287795 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+Loading dataset: Large (100000 sequences)...
+✓ Loaded 100000 sequences
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 13/24
+Operation: gc_content
+Config: naive (Scalar, 1 thread (baseline))
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.3s
+  Iterations: 856
+  Sequences processed: 85600000
+  Throughput: 1425163 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 14/24
+Operation: gc_content
+Config: neon (NEON SIMD, 1 thread)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 12918
+  Sequences processed: 1291800000
+  Throughput: 21529218 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 15/24
+Operation: gc_content
+Config: neon_4t (NEON SIMD, 4 threads)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 44629
+  Sequences processed: 4462900000
+  Throughput: 74381640 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 16/24
+Operation: gc_content
+Config: neon_8t (NEON SIMD, 8 threads)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 60006
+  Sequences processed: 6000600000
+  Throughput: 100008420 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+Loading dataset: Medium (10000 sequences)...
+✓ Loaded 10000 sequences
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 17/24
+Operation: quality_aggregation
+Config: naive (Scalar, 1 thread (baseline))
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 39384
+  Sequences processed: 393840000
+  Throughput: 6563910 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 18/24
+Operation: quality_aggregation
+Config: neon (NEON SIMD, 1 thread)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 800394
+  Sequences processed: 8003940000
+  Throughput: 133398996 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 19/24
+Operation: quality_aggregation
+Config: neon_4t (NEON SIMD, 4 threads)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 889259
+  Sequences processed: 8892590000
+  Throughput: 148209690 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 20/24
+Operation: quality_aggregation
+Config: neon_8t (NEON SIMD, 8 threads)
+Scale: Medium (10000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 462711
+  Sequences processed: 4627110000
+  Throughput: 77118440 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+Loading dataset: Large (100000 sequences)...
+✓ Loaded 100000 sequences
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 21/24
+Operation: quality_aggregation
+Config: naive (Scalar, 1 thread (baseline))
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.1s
+  Iterations: 3898
+  Sequences processed: 389800000
+  Throughput: 6495632 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 22/24
+Operation: quality_aggregation
+Config: neon (NEON SIMD, 1 thread)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 49390
+  Sequences processed: 4939000000
+  Throughput: 82316252 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 23/24
+Operation: quality_aggregation
+Config: neon_4t (NEON SIMD, 4 threads)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 113633
+  Sequences processed: 11363300000
+  Throughput: 189386789 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Experiment 24/24
+Operation: quality_aggregation
+Config: neon_8t (NEON SIMD, 8 threads)
+Scale: Large (100000 sequences)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏳ Running for 60 seconds...
+✓ Complete in 60.0s
+  Iterations: 124320
+  Sequences processed: 12432000000
+  Throughput: 207199598 seqs/sec
+
+💤 Cooldown: 5 seconds...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ All 24 experiments complete!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Next steps:
+1. Stop powermetrics (Ctrl+C in that terminal)
+2. Run analysis script: python analysis/parse_powermetrics.py
+3. Generate findings: python analysis/generate_power_findings.py
