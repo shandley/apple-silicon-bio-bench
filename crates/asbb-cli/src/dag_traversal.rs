@@ -803,20 +803,18 @@ fn main() -> Result<()> {
 
     let batch = DAGBatch::from_str(&batch_type)?;
 
-    // For validation: test with just 2 operations
-    // For full run: use all 20 operations
+    // Full run with 10 operations (Level 1 primitives)
     let operations = vec![
         "base_counting".to_string(),
         "gc_content".to_string(),
-        // Uncomment for full run:
-        // "at_content".to_string(),
-        // "n_content".to_string(),
-        // "reverse_complement".to_string(),
-        // "sequence_length".to_string(),
-        // "quality_aggregation".to_string(),
-        // "quality_filter".to_string(),
-        // "length_filter".to_string(),
-        // "complexity_score".to_string(),
+        "at_content".to_string(),
+        "n_content".to_string(),
+        "reverse_complement".to_string(),
+        "sequence_length".to_string(),
+        "quality_aggregation".to_string(),
+        "quality_filter".to_string(),
+        "length_filter".to_string(),
+        "complexity_score".to_string(),
     ];
 
     // Select scales based on batch type
