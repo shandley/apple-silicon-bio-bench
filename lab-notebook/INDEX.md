@@ -8,8 +8,8 @@
 
 ## Quick Stats
 
-**Total Entries**: 24 (including 1 checkpoint, 3 implementations, 2 democratization pilots, 2 DAG batches)
-**Experiments Run**: 1,125 total (849 analyzed in Phase 1, 87 Batch 1, 60 Batch 2, 129 DAG framework experiments)
+**Total Entries**: 25 (including 1 checkpoint, 3 implementations, 2 democratization pilots, 3 DAG batches)
+**Experiments Run**: 1,285 total (849 analyzed in Phase 1, 87 Batch 1, 60 Batch 2, 160 Batch 3, 129 DAG framework experiments)
   - Phase 1 NEON: 60 (10 operations × 6 scales)
   - Phase 1 GPU: 32 (4 operations × 8 scales)
   - Phase 2 Encoding: 72 (2 operations × 6 backends × 6 scales)
@@ -1341,9 +1341,93 @@ results/
 
 ---
 
+#### Entry 025: Scale Thresholds Batch 3 (DAG Framework) ✅
+**ID**: `20251103-025-EXPERIMENT-scale-thresholds-batch3.md`
+**Type**: EXPERIMENT
+**Status**: Complete
+**Phase**: Week 1 Day 2 - DAG Framework Validation (complete!)
+**Operations**: 10 (all Level 1 primitives)
+
+**Experimental Design**:
+- Batch: Scale Thresholds (precise cutoff determination)
+- Experiments: 160 (10 operations × 4 configs × 4 scales)
+- Scales: Tiny (100), Small (1K), Medium (10K), Large (100K)
+- Configs: naive, NEON, NEON+2t, NEON+4t
+
+**Key Findings**:
+✅ **Tiny scale shows HIGHEST NEON speedups** (counter-intuitive!)
+- base_counting: **23.07×** NEON speedup @ 100 sequences (highest ever!)
+- gc_content: 15.26× @ 100 sequences
+- at_content: 14.68× @ 100 sequences
+- **Pattern**: Entire dataset fits in L1 cache (15 KB < 192 KB) = maximum SIMD efficiency
+
+❌ **Parallel overhead dominates at tiny scale**
+- Thread overhead: ~7× performance penalty @ 100 sequences
+- at_content NEON+4t: **0.64×** (SLOWER than naive baseline!)
+- **Rule**: Never parallelize at <1K sequences
+
+✅ **Parallel threshold is operation-specific**
+- Early (1K): base_counting, complexity_score (2/10 operations)
+- Standard (10K): gc_content, at_content, quality_aggregation, n_content, reverse_complement, quality_filter (7/10)
+- Late (100K): sequence_length, length_filter (1/10)
+
+✅ **Multiplicative composition validated** (Batch 1 confirmation)
+- base_counting @ 10K: NEON 17×, NEON+4t **52×** (3× composition)
+- gc_content @ 10K: NEON 16×, NEON+4t **37×** (2.3× composition)
+
+✅ **NEON speedup peaks at smallest scales** (cache effects)
+- Tiny: 23× (L1 cache, zero misses)
+- Small: 14× (still L1)
+- Medium: 17× (L2 cache)
+- Large: 14× (L2/L3 shared)
+
+**Novel Discoveries**:
+1. **Tiny scale characterization** (100 sequences, first ever tested)
+   - Peak NEON performance (23×) due to L1 cache locality
+   - Thread overhead quantified (7× penalty)
+2. **Operation-specific parallel thresholds** (not universal 10K)
+   - Compute-dense: 1K threshold
+   - Memory-bound: 100K threshold
+   - Standard: 10K threshold (7/10 operations)
+
+**Hardware**: Mac M4 Air (4 P-cores, 6 E-cores, 24GB RAM)
+**Runtime**: ~5 seconds total
+
+**Deliverables**:
+- CSV: `results/dag_complete/dag_scale_thresholds.csv` (160 experiments)
+- Summary: `results/dag_complete/BATCH3_SUMMARY.md` (400+ line analysis)
+- Lab notebook: Entry 025
+- **Complete auto-selection algorithm** (ready for biofast)
+
+**Optimization Rules Derived**:
+1. Tiny scale (<1K): NEON only, never parallel (thread overhead dominates)
+2. Small scale (1K-10K): Operation-specific (early parallel for 2/10 ops)
+3. Medium/Large scale (≥10K): Parallel universally beneficial
+4. Very large scale (≥100K): Late threshold ops finally benefit
+
+**Validation**:
+- ✅ Batch 1 (multiplicative composition at ≥10K) - CONFIRMED
+- ✅ Batch 2 (thread count >> core type) - CONFIRMED (10-20× larger impact)
+
+**Impact**: Complete scale spectrum characterized (100 → 100K sequences)
+
+**Week 1 Day 2 Summary**:
+- ✅ All 3 DAG batches complete (307 experiments total)
+- ✅ NEON+Parallel composition validated
+- ✅ Core affinity characterized (E-cores competitive)
+- ✅ Scale thresholds identified (operation-specific)
+- **Status**: Week 1 Day 2 COMPLETE!
+
+**Next**: Entry 026 (Cross-Batch Analysis & Unified Optimization Guide)
+
+**References**: Entry 024 (Batch 2), Entry 023 (Batch 1), Entry 022 (DAG harness), DAG_FRAMEWORK.md
+
+---
+
 **Status**: Lab notebook current through November 3, 2025 ✅
-**Total Entries**: 24 (includes Entry 024: Core Affinity Batch 2)
-**Total Experiments**: 1,125 total (978 previous + 87 Batch 1 + 60 Batch 2)
+**Total Entries**: 25 (includes Entry 025: Scale Thresholds Batch 3)
+**Total Experiments**: 1,285 total (978 previous + 87 Batch 1 + 60 Batch 2 + 160 Batch 3)
+**DAG Framework**: ✅ **WEEK 1 DAY 2 COMPLETE** - All 3 batches finished (307 experiments)
 **Operations Implemented**: 20/20 (Level 1/2 operation set complete)
 **Dimensions Complete**: 6/9 (NEON, GPU, Encoding, Parallel, AMX, Compression) + Cross-dimension analysis
 **Democratization Pillars**: ✅ **4/4 VALIDATED** (Economic, Environmental, Portability, Data Access)
