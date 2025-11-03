@@ -128,3 +128,7 @@ path = "src/pilot_power.rs"
 [[bin]]
 name = "asbb-pilot-graviton"
 path = "src/pilot_graviton.rs"
+
+[[bin]]
+name = "asbb-dag-traversal"
+path = "src/dag_traversal.rs"
