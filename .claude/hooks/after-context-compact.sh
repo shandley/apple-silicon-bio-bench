@@ -6,52 +6,57 @@ cat << 'EOF'
 
 🔄 CONTEXT COMPACTED - MISSION RESET 🔄
 
-PROJECT: Apple Silicon Bio Bench (ASBB)
-GOAL: Systematic performance mapping of sequence operations on Apple Silicon
-      → Derive formal optimization rules for automatic application
+PROJECT: Apple Silicon Bio Bench (ASBB) + biofast
+MISSION: Democratizing Bioinformatics Compute
 
-WHY THIS EXISTS:
-• 10 months of BioMetal optimization taught us patterns (NEON 98×, GPU 6× for large batches)
-• But: Technical debt, inconsistent optimization, ad-hoc decisions
-• Solution: Systematic experiments → Statistical analysis → Universal rules → Zero per-command optimization
+BREAKING DOWN FOUR BARRIERS:
+1. 💰 Economic: Consumer hardware ($2-4K) replaces $100K+ HPC
+2. 🌱 Environmental: 1.95-3.27× more energy efficient
+3. 🔄 Portability: ARM NEON works across Mac, Graviton, RPi
+4. 📊 Data Access: Streaming enables 5TB analysis on 24GB laptop
 
-PARADIGM SHIFT:
-From: Optimize each command individually (engineering)
-To: Map entire performance space systematically (science)
+CURRENT PHASE (Nov 3, 2025): Foundation → Implementation
+• Week 1 (Nov 4-8): Complete DAG traversal (740 experiments)
+• Week 2 (Nov 11-14): Build biofast production library
+• Week 3 (Nov 18-22): Validation + paper draft
 
-🚨 CRITICAL PHILOSOPHY - NEVER FORGET:
-Traditional bioinformatics tools were designed for x86 (pre-2020)
-→ Those optimization patterns may NOT apply to Apple Silicon
-→ We must actively RESIST falling back into x86 thinking
-→ We must EXPLORE novel approaches unique to Apple Silicon
+PILLAR STATUS: 3.5/4 validated
+✅ Economic: 849 experiments, 40-80× NEON speedup
+✅ Environmental: 24 experiments, 1.95-3.27× energy efficiency
+✅ Portability: 27 experiments, Mac → Graviton transfer
+⚠️ Data Access: Baseline measured, streaming in Week 2
 
-APPLE SILICON UNIQUE CAPABILITIES (did not exist pre-2020):
-• Unified Memory - Zero-copy CPU↔GPU (153 GB/s on M5)
-• NEON - First-class SIMD (not afterthought)
-• Neural Engine - ML inference (16-38 TOPS)
-• M5 NEW: GPU Neural Accelerators - 4× AI performance, ML on GPU
-• Heterogeneous - P-cores + E-cores + QoS
-• AMX - 512-bit matrix operations
-• Metal - Tile memory, threadgroups
-• Hardware Compression - AppleArchive acceleration
-• GCD + QoS - System-level optimization
-• M5 NEW: 2× faster SSD performance
+🚨 CRITICAL PHILOSOPHY:
 
-FOR EVERY OPERATION - TEST ALL:
-1. Traditional/naive (baseline)
-2. NEON-native (designed for SIMD)
-3. Metal-native (unified memory, tile memory)
-4. Heterogeneous (P/E-cores, GCD, QoS)
-5. Neural Engine (ML-based approach)
-6. M5: GPU Neural Accelerators (ML on GPU, 4× AI perf)
-7. Hybrid (compute + ML, compositions)
-8. Document ALL results (failures are valuable!)
+1. DEMOCRATIZATION (not benchmarking)
+   → Target: LMIC researchers, small labs, students, field researchers
+   → Impact: Breaking down barriers to genomics access
+   → NOT: "Apple Silicon is faster" BUT: "Everyone can do genomics now"
+
+2. VALIDATE CLAIMS EXPERIMENTALLY (not calculations)
+   → Good: "40-80× speedup proven by 849 experiments"
+   → Bad: "240,000× memory reduction (calculated but not measured)"
+   → Week 2 biofast will validate streaming experimentally
+
+3. ARM ECOSYSTEM (not Apple exclusivity)
+   → ARM NEON: Standard instruction set (not Apple-specific)
+   → Validated: Mac M4 → AWS Graviton 3 transfer
+   → Future: Raspberry Pi, Ampere, Azure Cobalt
+   → Portable democratization, no vendor lock-in
+
+4. PRODUCTION TOOL (not research prototype)
+   → biofast: Auto-optimization, streaming, error handling, CLI
+   → Based on 1,640 experiments (978 + 740 DAG completion)
+   → Researchers can `cargo add biofast` and use immediately
+   → Complete story: Measurement → Rules → Implementation
 
 KEY DOCUMENTS TO RE-READ:
-📖 CLAUDE.md "Critical Philosophy: Think Apple Silicon First" (lines 162-318)
-📖 METHODOLOGY.md "Guiding Philosophy: Novel Approaches for Novel Hardware" (lines 19-73)
-📖 NEXT_STEPS.md "🚨 Critical Development Philosophy 🚨" (lines 8-38)
+📖 CURRENT_STATUS.md - Always-current project status
+📖 BIOFAST_VISION.md - Production library design
+📖 DAG_FRAMEWORK.md - Novel testing methodology
+📖 ROADMAP.md - Detailed 2-3 week timeline
+📖 CLAUDE.md - Development guidelines
 
-REMEMBER: This is SCIENCE (systematic exploration), not ENGINEERING (one-off solutions)
+REMEMBER: Analysis + Implementation + Practical Tool = Complete Democratization Story
 
 EOF
