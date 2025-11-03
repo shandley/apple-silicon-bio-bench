@@ -1,6 +1,29 @@
 # ASBB: Claude Development Guide
 
-**Last Updated**: November 2, 2025
+**Last Updated**: November 3, 2025
+
+---
+
+## 🚀 NEW: Phase Change (Nov 3, 2025)
+
+**Strategic Pivot**: From Analysis → Analysis + Implementation + Tool
+
+**Previous**: Pure analytical work (978 experiments, informative but lacks practical usage)
+
+**New Vision**:
+- Complete DAG traversal (740 experiments to fill gaps)
+- Build `biofast` production library with streaming
+- Four-pillar paper + usable tool on crates.io
+
+**Timeline**: 2-3 weeks (Nov 4-22, 2025)
+
+**Key Documents**:
+- **CURRENT_STATUS.md**: Updated with new roadmap
+- **BIOFAST_VISION.md**: Library design and goals
+- **DAG_FRAMEWORK.md**: Novel testing methodology
+- **ROADMAP.md**: Detailed 2-3 week timeline
+
+**For detailed guidance**: See documents above. This file (CLAUDE.md) describes general development principles which remain unchanged.
 
 ---
 
