@@ -1,585 +1,590 @@
-# Apple Silicon Bioinformatics: Optimization Rules
-**Quick Reference Guide - Based on 849 Systematic Experiments**
+# Optimization Rules for biometal
 
-**Last Updated**: November 2, 2025
-**Version**: Phase 1 Complete
-**Prediction Accuracy**: 72-100% (dimension-dependent)
-
----
-
-## Quick Decision Matrix
-
-| Data Scale | Complexity | NEON Benefit | Recommended Configuration | Expected Speedup |
-|------------|------------|--------------|--------------------------|------------------|
-| <1K sequences | Any | Low | Naive or simple NEON | 1-5× |
-| 1K-10K | 0.30-0.40 | **High** | NEON + 2-4 threads | **40-100×** |
-| 1K-10K | <0.30 or >0.50 | Low-Med | NEON + 2-4 threads | 5-20× |
-| >10K | 0.30-0.40 | **High** | NEON + 8 threads | **100-400×** |
-| >10K | 0.55-0.65, NEON <2× | Low | GPU + 4-8 threads | 8-20× |
-| >10K | Other | Med | NEON + 8 threads | 20-80× |
-| >1GB dataset | Any | N/A | Streaming + above rules | Same speed, 240,000× less memory |
+**Evidence Base**: 1,357 experiments, 40,710 measurements (N=30 statistical rigor)
+**Source**: Apple Silicon Bio Bench (ASBB) - Systematic Hardware Characterization
+**Period**: October 30 - November 4, 2025
+**Lab Notebook**: 33 entries documenting all experimental work
+**Repository**: https://github.com/shandley/apple-silicon-bio-bench
 
 ---
 
-## Rule 1: NEON SIMD Vectorization
+## Overview
 
-### When to Use NEON
+These optimization rules are derived from comprehensive experimental validation across 1,357 experiments with statistical rigor (N=30 repetitions, 95% CI, Cohen's d effect sizes). Each rule is evidence-linked to specific lab notebook entries documenting the experimental basis.
 
-✅ **USE NEON** for:
-- **Complexity 0.30-0.40** (simple counting operations): **10-50× speedup**
-  - Base counting, GC/AT content, base aggregations
-- **Complexity 0.45-0.61** (medium complexity): **1-23× speedup**
-  - Quality aggregation, complexity score, transformations
-- Operations with independent base/quality processing
-- No heavy branching logic
-
-❌ **SKIP NEON** for:
-- **Complexity <0.25** (trivial operations): Overhead dominates, <1.5× benefit
-  - Sequence length calculation, simple filters
-- Heavy branching (quality filters, length filters)
-- Sequential dependencies
-
-### NEON Speedup Predictor
-
-```python
-def predict_neon_speedup(complexity, num_sequences):
-    """
-    R² = 0.536, Accuracy: 72.2% within 20% error
-    """
-    log_scale = math.log10(num_sequences)
-    speedup = 19.69 - 6.56 * complexity - 8.20 * log_scale
-    return max(1.0, speedup)  # Minimum 1× (never slower)
-
-# Example:
-predict_neon_speedup(0.35, 1000000)  # → ~26× for GC content at 1M seqs
-```
-
-### By Operation Category
-
-| Operation | Complexity | NEON Speedup | Best Use Case |
-|-----------|------------|--------------|---------------|
-| **Base Counting** | 0.40 | **45×** | Any scale |
-| **GC Content** | 0.32 | **43×** | Any scale |
-| **AT Content** | 0.35 | **27×** | Any scale |
-| **N-Content** | 0.25 | **9×** | Large scale only |
-| **Quality Aggregation** | 0.50 | **8×** | Medium+ scale |
-| **Complexity Score** | 0.61 | **8×** | Large scale |
-| Reverse Complement (ASCII) | 0.45 | 1× | Not beneficial |
-| Quality Filter | 0.55 | 1× | Not beneficial |
-| Length Filter | 0.55 | 1× | Not beneficial |
-| Sequence Length | 0.20 | 1× | Not beneficial |
+**Key Insight**: Individual optimizations are good, but **layered optimizations are exceptional**. The I/O optimization stack demonstrates this: parallel bgzip (6.5×) + smart mmap (2.5×) = **16.3× combined speedup**.
 
 ---
 
-## Rule 2: Parallel/Threading
+## Rule 1: Use ARM NEON SIMD (16-25× speedup)
 
-### When to Use Parallel Processing
+### When to Apply
 
-✅ **USE PARALLEL** for:
-- **Any scale >10K sequences**: Universal benefit
-- **8 threads** for >100K sequences: **4-21× speedup**
-- **4 threads** for 10K-100K sequences: **2-8× speedup**
-- **2 threads** for 1K-10K sequences: **1.5-3× speedup**
+Operations with **element-wise processing** patterns:
+- Base counting: 16.7× speedup
+- GC content calculation: 20.3× speedup
+- Quality filtering: 25.1× speedup
+- Sequence complexity: 18.2× speedup
 
-❌ **SKIP PARALLEL** (use 1 thread) for:
-- <1K sequences: Overhead dominates
+### Evidence
 
-### Super-Linear Speedups
+**Source**: [Lab Notebook Entry 020-025](lab-notebook/2025-11/) (DAG Framework Validation)
+- **Experiments**: 307 total (9,210 measurements)
+- **Statistical rigor**: 95% CI, Cohen's d effect sizes (very large, d > 3.0)
+- **Cross-platform**: Mac M4 Max, AWS Graviton 3
+- **Findings**: `results/dag_statistical/PHASE4_STATISTICAL_ANALYSIS_REPORT.md`
 
-**Up to 268% efficiency observed** (21.47× on 8 threads):
-- Reason 1: Cache effects (parallel chunks fit in L1/L2)
-- Reason 2: E-core utilization (10 cores: 4 P + 6 E)
-- Reason 3: Memory bandwidth optimization
+**Effectiveness Predictor**: Operations with complexity score 0.30-0.40 (element-wise)
 
-### Thread Count by Scale
-
-```python
-def optimal_threads(num_sequences):
-    if num_sequences < 1_000:
-        return 1  # Overhead dominates
-    elif num_sequences < 10_000:
-        return 2  # Moderate benefit
-    elif num_sequences < 100_000:
-        return 4  # Strong scaling
-    else:
-        return 8  # Maximum speedup
-
-# Example:
-optimal_threads(50_000)  # → 4 threads
-```
-
-### Maximum Observed Speedups (8 threads, 10M sequences)
-
-| Operation | Speedup | Efficiency | Notes |
-|-----------|---------|------------|-------|
-| **Sequence Length** | **21.47×** | **268%** | Super-linear! |
-| **N-Content** | **17.67×** | **221%** | Super-linear! |
-| **Complexity Score** | **16.08×** | **201%** | Super-linear! |
-| AT Content | 15.10× | 189% | Super-linear! |
-| Quality Aggregation | 14.41× | 180% | Super-linear! |
-| Quality Filter | 13.30× | 166% | Super-linear! |
-| Base Counting | 12.01× | 150% | Near-perfect scaling |
-
-**Pattern**: Simpler operations show better parallel scaling (data-parallelism matters more than complexity)
-
----
-
-## Rule 3: GPU Metal Compute
-
-### When to Use GPU
-
-✅ **USE GPU** when **ALL** conditions met:
-1. **NEON speedup <2×** (NEON ineffective) ← **Test NEON first!**
-2. **Complexity >0.55** (sufficient computational work)
-3. **Batch size >10K sequences** (amortize 50-100ms launch overhead)
-
-❌ **SKIP GPU** if **ANY** condition:
-- NEON speedup >2× (NEON will be faster) ← **90% of cases**
-- Batch size <10K sequences (overhead dominates)
-- Sequential dependencies
-
-### GPU Decision Logic
-
-```python
-def should_use_gpu(operation_complexity, neon_speedup, num_sequences):
-    """
-    Accuracy: 100% (4/4 operations correctly predicted)
-    """
-    if neon_speedup > 2.0:
-        return False  # NEON wins (90% of cases)
-
-    if operation_complexity < 0.55:
-        return False  # Not enough work for GPU
-
-    if num_sequences < 10_000:
-        return False  # Overhead dominates
-
-    return True  # GPU might win (test it!)
-
-# Example:
-should_use_gpu(0.61, 1.0, 1_000_000)  # → True (Complexity Score case)
-should_use_gpu(0.40, 45.0, 1_000_000)  # → False (Base Counting - NEON wins)
-```
-
-### GPU Performance by Operation
-
-| Operation | Complexity | NEON Speedup | GPU Speedup | Winner |
-|-----------|------------|--------------|-------------|--------|
-| **Complexity Score** | 0.61 | 1× | **2-3×** | **GPU** ✅ |
-| Base Counting | 0.40 | 45× | 0.03× (30× slower) | NEON |
-| Reverse Complement | 0.45 | 1× | 0.1× (10× slower) | Neither |
-| Quality Aggregation | 0.50 | 8× | 0.015× (66× slower) | NEON |
-
-**Key Insight**: Only 1/10 operations benefit from GPU. **Test NEON first to avoid wasted GPU testing.**
-
----
-
-## Rule 4: Optimization Composition
-
-### NEON + Parallel = Multiplicative
-
-For independent operations (no sequential dependencies):
-
-```python
-combined_speedup ≈ neon_speedup × parallel_speedup
-
-# Example: Base Counting on 10M sequences
-neon_speedup = 45×
-parallel_speedup = 4.69× (8 threads)
-combined_speedup ≈ 45 × 4.69 ≈ 211×
-
-# Validation: Measured composition ratio = 0.5-1.0 at VeryLarge scale
-```
-
-### Composition Rules
-
-✅ **COMPOSE SAFELY**:
-- NEON + Parallel: **Multiplicative** (validated experimentally)
-- NEON + Streaming: **Additive** (same speed, less memory)
-- Parallel + Streaming: **Additive** (stream in parallel)
-
-⚠️ **COMPOSITION OVERHEAD**:
-- Measured: 5-10% overhead from dimension switching
-- Expected combined: 0.5-0.9× of theoretical maximum
-
-❌ **DO NOT COMPOSE**:
-- NEON + GPU: Pick one (both do vectorization)
-- 2-bit + Isolated operations: Overhead dominates
-
----
-
-## Rule 5: Memory & Streaming
-
-### When to Use Streaming
-
-✅ **USE STREAMING** for:
-- **Datasets >1GB** (memory becomes bottleneck)
-- **Any size** if memory-constrained (MacBook with 24GB RAM)
-- Multi-operation pipelines (convert once, reuse many times)
-
-### Memory Savings
-
-| Operation | Load-All Memory (1M seqs) | Streaming Memory | Reduction |
-|-----------|--------------------------|------------------|-----------|
-| GC Content | 6 MB/M seqs | 24 bytes | 250,000× |
-| Quality Filter | 12 MB/M seqs | 0 bytes | ∞ (filter in-place) |
-| Sequence Length | 10 MB/M seqs | 0 bytes | ∞ (aggregate only) |
-| Reverse Complement | 257 MB/M seqs | 300 bytes | 850,000× |
-| Base Counting | 360 MB/M seqs | 24 bytes | 15,000,000× |
-
-### 5TB Dataset Example
-
-**Without streaming** (load-all):
-- Base Counting: **11.88 TB RAM** required
-- Result: ❌ Impossible on MacBook (24GB RAM)
-
-**With streaming**:
-- Base Counting: **<100 MB RAM** required
-- Result: ✅ Feasible on MacBook
-
-**Speedup**: No performance penalty (network-bound for remote files)
-
-### Streaming Pattern
+### Implementation Pattern
 
 ```rust
-// ❌ Load-all pattern (fails for large datasets)
-let all_sequences = load_all(file)?; // 12 TB RAM!
-let results = process(all_sequences); // OOM crash
+#[cfg(target_arch = "aarch64")]
+use std::arch::aarch64::*;
 
-// ✅ Streaming pattern (constant memory)
-for sequence in stream(file)? {     // ~10 MB constant
-    let result = process(sequence);  // Process one at a time
-    write(result)?;                  // Write immediately
+/// NEON-optimized base counting (16.7× faster than scalar)
+/// Evidence: Entry 020, Cohen's d = 4.82 (very large effect)
+#[cfg(target_arch = "aarch64")]
+pub unsafe fn count_bases_neon(seq: &[u8]) -> [u32; 4] {
+    let mut counts = [0u32; 4];
+
+    // NEON registers for ACGT counts
+    let mut vcounts = [vdupq_n_u32(0); 4];
+
+    // Process 16 bytes at a time
+    let chunks = seq.chunks_exact(16);
+    let remainder = chunks.remainder();
+
+    for chunk in chunks {
+        let seq_vec = vld1q_u8(chunk.as_ptr());
+
+        // Compare against A, C, G, T (4 NEON comparisons in parallel)
+        let a_mask = vceqq_u8(seq_vec, vdupq_n_u8(b'A'));
+        let c_mask = vceqq_u8(seq_vec, vdupq_n_u8(b'C'));
+        let g_mask = vceqq_u8(seq_vec, vdupq_n_u8(b'G'));
+        let t_mask = vceqq_u8(seq_vec, vdupq_n_u8(b'T'));
+
+        // Accumulate counts
+        vcounts[0] = vaddq_u32(vcounts[0], vpaddlq_u16(vpaddlq_u8(a_mask)));
+        vcounts[1] = vaddq_u32(vcounts[1], vpaddlq_u16(vpaddlq_u8(c_mask)));
+        vcounts[2] = vaddq_u32(vcounts[2], vpaddlq_u16(vpaddlq_u8(g_mask)));
+        vcounts[3] = vaddq_u32(vcounts[3], vpaddlq_u16(vpaddlq_u8(t_mask)));
+    }
+
+    // Extract counts from NEON registers
+    for i in 0..4 {
+        counts[i] = vgetq_lane_u32(vcounts[i], 0) +
+                    vgetq_lane_u32(vcounts[i], 1) +
+                    vgetq_lane_u32(vcounts[i], 2) +
+                    vgetq_lane_u32(vcounts[i], 3);
+    }
+
+    // Handle remainder with scalar code
+    for &base in remainder {
+        match base {
+            b'A' => counts[0] += 1,
+            b'C' => counts[1] += 1,
+            b'G' => counts[2] += 1,
+            b'T' => counts[3] += 1,
+            _ => {}
+        }
+    }
+
+    counts
+}
+
+/// Scalar fallback for non-ARM platforms
+#[cfg(not(target_arch = "aarch64"))]
+pub fn count_bases_scalar(seq: &[u8]) -> [u32; 4] {
+    let mut counts = [0u32; 4];
+    for &base in seq {
+        match base {
+            b'A' => counts[0] += 1,
+            b'C' => counts[1] += 1,
+            b'G' => counts[2] += 1,
+            b'T' => counts[3] += 1,
+            _ => {}
+        }
+    }
+    counts
 }
 ```
 
----
+### Key Insights
 
-## Rule 6: 2-bit Encoding
+1. **NEON is standard ARM**: Works across Mac, Graviton, Ampere, Raspberry Pi
+2. **Not Apple-specific**: Uses standard ARM NEON intrinsics
+3. **Portable**: Always provide scalar fallback for x86_64
+4. **Predictable**: Complexity score predicts NEON effectiveness
 
-### Current Status (Phase 1)
+### Platform Support
 
-❌ **DO NOT USE** for Phase 1 (isolated operations):
-- **Performance penalty**: 2-4× slower due to conversion overhead
-- **Reason**: Scalar conversion (ASCII ↔ 2-bit) dominates
-- **Memory benefit**: 4× reduction (4 bases/byte vs 1 base/byte)
+- ✅ **macOS** (Apple Silicon: M1, M2, M3, M4)
+- ✅ **Linux ARM** (AWS Graviton, Ampere Altra, Raspberry Pi 4/5)
+- ✅ **Windows ARM** (Surface Pro X, ARM64 Windows)
+- ⚠️ **x86_64**: Falls back to scalar (no SIMD equivalent)
 
-### When 2-bit Might Win (Phase 2+)
-
-✅ **CONSIDER 2-BIT** if:
-1. **NEON-optimized conversion** implemented (estimated 4-8× faster conversion)
-2. **Multi-operation pipelines** (convert once, reuse many times)
-3. **Memory-constrained** (dataset fits in cache with 2-bit, not with ASCII)
-
-⏸️ **DEFERRED** until:
-- NEON lookup table conversion implemented
-- Multi-operation composition validated
-- Cache benefit quantified
 
 ---
 
-## Rule 7: Scale Thresholds
+## Rule 2: Use Block-Based Processing (10K records per block)
 
-### Universal 10K Threshold
+### Why This Matters
 
-**10K sequences** is critical threshold across multiple dimensions:
+**Problem**: Record-by-record streaming loses 82-86% of NEON speedup.
 
-| Dimension | <10K Behavior | >10K Behavior |
-|-----------|--------------|---------------|
-| **Parallel** | Overhead dominates (use 1-2 threads) | Strong scaling (use 4-8 threads) |
-| **GPU** | Launch overhead dominates (skip GPU) | GPU might win (test if NEON <2×) |
-| **2-bit** | Conversion overhead dominates (skip) | Might break even (test) |
+**Solution**: Process records in blocks of ~10K to preserve SIMD performance while maintaining streaming benefits.
 
-**Implication**: Operations on <10K sequences should use **simple NEON-only** approach.
+### Evidence
 
----
+**Source**: [Lab Notebook Entry 027](lab-notebook/2025-11/20251103-027-EXPERIMENT-streaming-overhead.md)
+- **Experiments**: 48 total (1,440 measurements)
+- **Finding**: Record-by-record NEON = 82-86% overhead
+- **Solution**: Block-based processing (10K records) = 4-8% overhead
+- **Conclusion**: Block size is critical for streaming + SIMD
 
-## Recommended Configurations by Use Case
+**Trade-off Analysis**:
+- Block size too small (1K): SIMD setup overhead dominates
+- Block size too large (100K): Memory pressure, reduces streaming benefit
+- **Sweet spot**: 10K records (~1.5 MB for 150bp reads)
 
-### Use Case 1: Small Batch (<10K sequences)
+### Implementation Pattern
 
-**Configuration**: NEON only (1-2 threads)
 ```rust
-config = HardwareConfig {
-    use_neon: operation.complexity >= 0.30,
-    num_threads: if num_seqs < 1_000 { 1 } else { 2 },
-    use_gpu: false,
-    encoding: Encoding::ASCII,
+/// Block-based FASTQ streaming processor
+/// Evidence: Entry 027 (preserves NEON speedup with streaming)
+pub struct FastqStream<R: BufRead> {
+    reader: R,
+    block_buffer: Vec<FastqRecord>,
+    block_size: usize,
 }
-```
 
-**Expected Speedup**:
-- Complexity 0.30-0.40: 10-50× (NEON)
-- Other: 1-8×
+impl<R: BufRead> FastqStream<R> {
+    /// Create streaming processor with evidence-based block size
+    pub fn new(reader: R) -> Self {
+        Self {
+            reader,
+            block_buffer: Vec::with_capacity(10_000), // Evidence-based
+            block_size: 10_000, // From Entry 027
+        }
+    }
 
-### Use Case 2: Medium Batch (10K-100K sequences)
+    /// Process one block of records with NEON
+    /// This preserves SIMD speedup while maintaining streaming
+    fn process_block(&mut self) -> Result<ProcessedBlock> {
+        self.block_buffer.clear();
 
-**Configuration**: NEON + Parallel (4 threads)
-```rust
-config = HardwareConfig {
-    use_neon: operation.complexity >= 0.30,
-    num_threads: 4,
-    use_gpu: false,  // Test NEON first, only use GPU if NEON <2×
-    encoding: Encoding::ASCII,
-}
-```
-
-**Expected Speedup**:
-- Complexity 0.30-0.40: 40-200× (NEON × Parallel)
-- Other: 4-32×
-
-### Use Case 3: Large Batch (>100K sequences)
-
-**Configuration**: NEON + Parallel (8 threads)
-```rust
-config = HardwareConfig {
-    use_neon: operation.complexity >= 0.30,
-    num_threads: 8,
-    use_gpu: (neon_speedup < 2.0) && (complexity > 0.55),
-    encoding: Encoding::ASCII,
-}
-```
-
-**Expected Speedup**:
-- Complexity 0.30-0.40: 100-800× (NEON × Parallel with super-linear scaling)
-- Complexity 0.55-0.65, NEON <2×: 8-20× (GPU × Parallel)
-- Other: 10-80×
-
-### Use Case 4: Massive Dataset (>1GB file, any sequence count)
-
-**Configuration**: Streaming + Best of above
-```rust
-config = HardwareConfig {
-    use_streaming: true,  // Process in chunks
-    chunk_size: 100_000,  // Optimal for memory/speed trade-off
-    use_neon: operation.complexity >= 0.30,
-    num_threads: 8,
-    use_gpu: (neon_speedup < 2.0) && (complexity > 0.55),
-    encoding: Encoding::ASCII,
-}
-```
-
-**Expected Results**:
-- **Speed**: Same as large batch (100-800×)
-- **Memory**: 240,000× less (<100 MB vs TB)
-- **Feasibility**: ✅ Works on MacBook (vs ❌ requires HPC server)
-
----
-
-## Optimization Workflow
-
-### Step 1: Profile Operation (One-Time)
-
-```python
-# 1. Measure complexity
-complexity = measure_complexity(operation, sample_data)
-
-# 2. Test NEON on sample (1K-10K sequences)
-neon_speedup = benchmark(operation, 'neon', sample_data) / \
-               benchmark(operation, 'naive', sample_data)
-
-# 3. Predict GPU benefit (skip GPU test if NEON >2×)
-if neon_speedup < 2.0 and complexity > 0.55:
-    gpu_speedup = benchmark(operation, 'gpu', sample_data) / \
-                  benchmark(operation, 'naive', sample_data)
-else:
-    gpu_speedup = 0.0  # Skip GPU testing
-```
-
-### Step 2: Select Configuration (Per Dataset)
-
-```python
-def select_config(operation, num_sequences, dataset_size_gb):
-    complexity = operation.complexity
-    neon_speedup = operation.neon_speedup  # From profiling
-
-    # Memory dimension
-    use_streaming = dataset_size_gb > 1.0
-
-    # Scale-based selection
-    if num_sequences < 1_000:
-        return Config(neon=True, threads=1, gpu=False, streaming=use_streaming)
-
-    elif num_sequences < 10_000:
-        return Config(neon=True, threads=2, gpu=False, streaming=use_streaming)
-
-    elif num_sequences < 100_000:
-        return Config(neon=True, threads=4, gpu=False, streaming=use_streaming)
-
-    else:  # >100K sequences
-        use_gpu = (neon_speedup < 2.0) and (complexity > 0.55)
-        return Config(neon=True, threads=8, gpu=use_gpu, streaming=use_streaming)
-```
-
-### Step 3: Apply Configuration (Automatic)
-
-```rust
-// Rust implementation (automatic selection)
-impl OperationExecutor {
-    pub fn execute_optimized(
-        &self,
-        operation: &Operation,
-        data: &DataCharacteristics,
-    ) -> Result<Output> {
-        let config = self.optimization_rules.select_config(operation, data);
-
-        match config {
-            Config { streaming: true, .. } => {
-                self.execute_streaming(operation, data, config)
-            }
-            Config { gpu: true, .. } => {
-                self.execute_gpu_parallel(operation, data, config)
-            }
-            Config { neon: true, threads: n } => {
-                self.execute_neon_parallel(operation, data, n)
-            }
-            _ => {
-                self.execute_naive(operation, data)
+        // Fill block buffer (up to 10K records)
+        while self.block_buffer.len() < self.block_size {
+            match self.read_record()? {
+                Some(record) => self.block_buffer.push(record),
+                None => break, // End of stream
             }
         }
+
+        if self.block_buffer.is_empty() {
+            return Ok(ProcessedBlock::empty());
+        }
+
+        // Process entire block with NEON (preserves 16-25× speedup)
+        let results = unsafe {
+            process_block_neon(&self.block_buffer)
+        };
+
+        Ok(ProcessedBlock::new(results))
     }
 }
 ```
 
----
+### Key Insights
 
-## Prediction Confidence
-
-### High Confidence (>90%)
-
-- ✅ **NEON effectiveness by complexity** (R² = 0.536, 72% within 20%)
-- ✅ **GPU decision rule** (100% accuracy on 4 tested operations)
-- ✅ **Parallel benefit at scale >10K** (100% of operations benefit)
-- ✅ **10K threshold** (consistent across dimensions)
-
-### Medium Confidence (50-90%)
-
-- ⚠️ **Composition rules** (validated on 6 operations, needs broader testing)
-- ⚠️ **Super-linear speedup magnitude** (varies by operation and hardware)
-- ⚠️ **Streaming overhead** (<10% expected, needs direct measurement)
-
-### Low Confidence (<50%)
-
-- ❓ **2-bit encoding benefit** (deferred - needs NEON-optimized conversion)
-- ❓ **Generalization to M1/M2/M3/M5** (M4-only data so far)
-- ❓ **Real-world data performance** (synthetic data only)
+1. **Streaming + SIMD requires batching**: Cannot do both record-by-record
+2. **10K is empirically optimal**: Balances SIMD efficiency and memory footprint
+3. **Constant memory**: 10K records × 150bp = ~1.5 MB (acceptable overhead)
+4. **Preserves both benefits**: Streaming (constant memory) + NEON (16-25× speedup)
 
 ---
 
-## Example: Applying Rules to GC Content Analysis
+## Rule 3: Use Parallel Bgzip Decompression (6.5× speedup)
 
-**Operation**: GC Content
-**Complexity**: 0.32
-**Known NEON Speedup**: 43×
+### When to Apply
 
-### Scenario 1: Small Sample (1K sequences, 150 KB)
+**All bgzip-compressed files** (.fq.bgz, .fa.bgz, .fastq.gz with bgzip block structure)
 
-**Selected Config**: NEON, 1 thread, no GPU, no streaming
-**Expected Speedup**: ~43×
-**Expected Time**: 28ms (vs 1,211ms naive)
+Bgzip files consist of independent compressed blocks that can be decompressed in parallel using all CPU cores.
 
-### Scenario 2: Medium Sample (100K sequences, 15 MB)
+### Evidence
 
-**Selected Config**: NEON, 4 threads, no GPU, no streaming
-**Expected Speedup**: ~43× (NEON) × 4× (parallel) = **~172×**
-**Expected Time**: 7ms (vs 1,211ms naive)
+**Source**: [Lab Notebook Entry 029](lab-notebook/2025-11/20251104-029-EXPERIMENT-parallel-bgzip-cpu.md)
+- **Implementation**: Rayon-based CPU parallel prototype
+- **Speedup**: 6.5× (production-validated)
+- **Platform**: Mac, Linux, Windows (fully portable)
+- **Cost**: 0 platform dependencies (pure Rust + Rayon)
+- **Findings**: `results/bgzip_parallel/PARALLEL_BGZIP_FINDINGS.md`
 
-### Scenario 3: Large Dataset (10M sequences, 1.5 GB)
+**Why not GPU**: [Entry 031](lab-notebook/2025-11/20251104-031-EXPERIMENT-metal-deflate-phase2.md)
+- Real bgzip uses 100% dynamic Huffman trees (not fixed)
+- GPU implementation requires dynamic Huffman decoder: 7-10 days development
+- ROI too low: 7-10 days for 2-3× incremental over CPU's 6.5×
+- **Decision**: Use CPU parallel only (save time for biometal core features)
 
-**Selected Config**: NEON, 8 threads, no GPU, **streaming**
-**Expected Speedup**: ~43× (NEON) × 5.36× (8t parallel) = **~230×**
-**Memory**: <100 MB (vs 6 GB load-all)
-**Expected Time**: 5ms per 1M chunk = 50ms total
+### Implementation Pattern
 
-### Scenario 4: Massive Dataset (5TB, 33B sequences)
+```rust
+use rayon::prelude::*;
 
-**Selected Config**: NEON, 8 threads, no GPU, **streaming**
-**Expected Speedup**: Same as Scenario 3 (~230×)
-**Memory**: <100 MB (vs **198 GB** load-all) = **1,980× reduction**
-**Expected Time**: Network-bound (11-111 hours at 100-1000 Mbps)
-**Feasibility**: ✅ MacBook (vs ❌ requires $50K HPC server)
+/// Parallel bgzip decompression (6.5× speedup)
+/// Evidence: Entry 029 (CPU parallel prototype)
+pub fn decompress_bgzip_parallel(compressed: &[u8]) -> io::Result<Vec<u8>> {
+    // Parse bgzip block boundaries
+    let blocks = parse_bgzip_blocks(compressed)?;
 
----
+    // Decompress blocks in parallel (uses all CPU cores)
+    let decompressed_blocks: Vec<_> = blocks
+        .par_iter()
+        .map(|block| decompress_block(block))
+        .collect::<io::Result<Vec<_>>>()?;
 
-## Validation & Reproducibility
-
-### Validation Status
-
-✅ **Validated**:
-- 849 experiments across 5 dimensions
-- 10 operations, 6 scales
-- M4 MacBook Air (24GB RAM, 10 cores)
-
-⏳ **Needs Validation**:
-- M1/M2/M3/M4 Pro/Max/Ultra/M5 hardware
-- Real FASTQ data (compressed, variable quality)
-- Multi-operation compositions
-- Streaming overhead measurement
-
-### Reproducing Results
-
-```bash
-# Clone repository
-git clone https://github.com/shandley/apple-silicon-bio-bench
-cd apple-silicon-bio-bench
-
-# Build optimized binaries
-cargo build --release
-
-# Run Phase 1 pilots
-./scripts/run_all_pilots.sh  # ~4 hours, 849 experiments
-
-# Analyze results
-source analysis/venv/bin/activate
-python analysis/analyze_all.py
-
-# Compare with published results
-./scripts/validate_results.sh  # Should match within ±20%
-```
-
-### Contributing
-
-**To add new operations**:
-1. Implement operation in `crates/asbb-ops/`
-2. Measure complexity (see `COMPLEXITY_METRIC.md`)
-3. Run Phase 1 pilots (NEON, Parallel, GPU, Memory)
-4. Update optimization rules with findings
-
-**To validate on new hardware**:
-1. Run Phase 1 pilots on new hardware
-2. Compare speedups with M4 baseline
-3. Report differences as issues/PRs
-
----
-
-## Quick Reference Table
-
-| Question | Answer |
-|----------|--------|
-| **Should I use NEON?** | If complexity 0.30-0.60 → **Yes** (10-50× speedup) |
-| **Should I use Parallel?** | If >10K sequences → **Yes** (4-21× speedup) |
-| **Should I use GPU?** | If NEON <2× AND complexity >0.55 AND >10K seqs → **Maybe** (test it) |
-| **Should I use Streaming?** | If >1GB dataset → **Yes** (240,000× less memory) |
-| **Should I use 2-bit encoding?** | **No** (Phase 1: overhead dominates) |
-| **How many threads?** | <1K seqs: 1t, 1K-10K: 2t, 10K-100K: 4t, >100K: 8t |
-| **What's the 10K threshold?** | Below 10K: simple NEON. Above 10K: NEON + Parallel + maybe GPU |
-| **Can I combine optimizations?** | Yes! NEON × Parallel = multiplicative speedup |
-| **What speedup should I expect?** | Simple counting (0.30-0.40) + >100K seqs = **100-400×** |
-
----
-
-**Generated by**: Apple Silicon Bio Bench Phase 1 Analysis
-**Data**: 849 experiments (NEON: 60, 2-bit: 12, GPU: 32, Parallel: 720, Memory: 25)
-**Prediction Accuracy**: 72-100% (dimension-dependent)
-**Status**: ✅ Production-Ready (Phase 1 Complete)
-
-**Citation**:
-```bibtex
-@article{handley2025asbb_rules,
-  title={Optimization Rules for Bioinformatics on Apple Silicon},
-  author={Handley, Scott and Claude AI},
-  journal={Apple Silicon Bio Bench Phase 1},
-  year={2025},
-  note={849 systematic experiments, 5 hardware dimensions}
+    // Concatenate decompressed blocks
+    Ok(decompressed_blocks.concat())
 }
 ```
+
+### Key Insights
+
+1. **Bgzip enables parallelism**: Independent blocks designed for parallel decompression
+2. **CPU is production-ready**: Works on all platforms, no GPU complexity
+3. **Rayon handles scheduling**: Automatic work distribution across cores
+4. **No GPU needed**: CPU parallel is sufficient (validated decision from Entry 031)
+
+### Platform Support
+
+- ✅ **All platforms**: Mac, Linux, Windows, ARM, x86_64
+- ✅ **Zero platform deps**: Pure Rust + Rayon
+- ✅ **Scales to core count**: Uses all available CPU cores
+
+
+---
+
+## Rule 4: Use Smart mmap for Large Files (2.5× additional speedup)
+
+### When to Apply
+
+**Files ≥50 MB** on platforms with memory-mapped I/O optimization (macOS validated, Linux future)
+
+**Threshold-based approach**: Use mmap for large files, standard I/O for small files to avoid overhead.
+
+### Evidence
+
+**Source**: [Lab Notebook Entry 032](lab-notebook/2025-11/20251104-032-EXPERIMENT-mmap-apfs-optimization.md)
+- **Test 1**: Initial validation (5.4 MB file) = 1.66× speedup
+- **Test 2**: Scale validation (0.54 MB to 544 MB)
+  - Small files (<50 MB): 0.66-0.99× (overhead dominates, **don't use mmap**)
+  - Large files (≥50 MB): 2.30-2.55× speedup (APFS prefetching dominates)
+- **Threshold**: 50 MB (empirically determined break-even point)
+- **Findings**: `results/io_optimization/MMAP_FINDINGS.md`
+
+**Why threshold matters**:
+- Small files: mmap setup cost (~200 µs) >> actual I/O time (~67 µs)
+- Large files: APFS prefetching benefit >> mmap overhead
+
+### Implementation Pattern
+
+```rust
+use memmap2::Mmap;
+
+const MMAP_THRESHOLD: u64 = 50 * 1024 * 1024; // 50 MB
+
+/// Smart I/O data source (threshold-based mmap)
+/// Evidence: Entry 032 (scale validation across 0.54-544 MB)
+enum DataSource {
+    StandardIo(Vec<u8>),
+    MemoryMapped(Mmap),
+}
+
+impl DataSource {
+    /// Open file with smart I/O method selection
+    /// - Small files (<50 MB): Use standard I/O (avoids mmap overhead)
+    /// - Large files (≥50 MB): Use mmap + madvise (2.5× speedup)
+    pub fn open(path: &Path) -> io::Result<Self> {
+        let metadata = std::fs::metadata(path)?;
+        let file_size = metadata.len();
+
+        if file_size >= MMAP_THRESHOLD {
+            // Large file: Use mmap with APFS optimization hints
+            Self::open_mmap(path)
+        } else {
+            // Small file: Use standard I/O (faster for <50 MB)
+            let data = std::fs::read(path)?;
+            Ok(DataSource::StandardIo(data))
+        }
+    }
+
+    /// Open file with memory mapping + APFS hints
+    #[cfg(target_os = "macos")]
+    fn open_mmap(path: &Path) -> io::Result<Self> {
+        use libc::{madvise, MADV_SEQUENTIAL, MADV_WILLNEED};
+
+        let file = std::fs::File::open(path)?;
+        let mmap = unsafe { Mmap::map(&file)? };
+
+        // Give kernel sequential access hints for APFS optimization
+        unsafe {
+            madvise(
+                mmap.as_ptr() as *mut _,
+                mmap.len(),
+                MADV_SEQUENTIAL | MADV_WILLNEED,
+            );
+        }
+
+        Ok(DataSource::MemoryMapped(mmap))
+    }
+}
+```
+
+### Combined Performance
+
+**Small files (<50 MB)**:
+- Parallel bgzip: 6.5×
+- Standard I/O: 1.0×
+- **Combined**: 6.5× speedup
+
+**Large files (≥50 MB)** - typical in genomics:
+- Parallel bgzip: 6.5×
+- Smart mmap: 2.5×
+- **Combined**: 16.3× speedup (6.5 × 2.5)
+
+**E2E impact** (from Entry 028):
+- Before optimization: NEON 1.04-1.08× E2E (I/O bottleneck 264-352×)
+- After optimization: Projected **17× E2E speedup** for large files
+
+### Key Insights
+
+1. **Threshold is critical**: mmap hurts small files, helps large files
+2. **Platform-specific**: APFS (macOS) validated, Linux future
+3. **Complementary optimizations**: Parallel bgzip + mmap = multiplicative benefits
+4. **Unified memory helps**: Apple Silicon's architecture optimizes mmap
+
+### Platform Support
+
+- ✅ **macOS**: Validated with APFS (2.3-2.5× for ≥50 MB)
+- ⏳ **Linux**: Future validation on AWS Graviton (Week 3-4)
+- ❌ **Windows**: No equivalent API (use standard I/O)
+
+---
+
+## Rule 5: Design for Constant-Memory Streaming (~5 MB)
+
+### Result
+
+**99.5% memory reduction** (1,344 MB → 5 MB @ 1M sequences)
+
+**Critical finding**: Streaming memory is **CONSTANT (~5 MB)** regardless of dataset size. This enables analyzing 5TB datasets on laptops with <100 MB RAM.
+
+### Evidence
+
+**Source**: [Lab Notebook Entry 026](lab-notebook/2025-11/20251103-026-EXPERIMENT-streaming-memory-footprint-v2.md)
+- **Experiments**: 24 total (720 measurements, corrected v2)
+- **Scales tested**: 10K, 100K, 1M sequences
+- **Finding**: Streaming memory remains constant at ~5 MB regardless of scale
+- **Batch comparison**: 1M sequences = 1,344 MB (batch) vs 5 MB (streaming)
+- **Conclusion**: Memory footprint is independent of dataset size
+
+### Implementation Pattern
+
+```rust
+/// Constant-memory FASTQ streaming (99.5% memory reduction)
+/// Evidence: Entry 026 (constant ~5 MB regardless of scale)
+pub struct FastqStream<R: BufRead> {
+    reader: R,
+    line_buffer: String,
+    record_buffer: FastqRecord,
+    // NO full-dataset storage! Memory is constant.
+}
+
+impl<R: BufRead> FastqStream<R> {
+    pub fn new(reader: R) -> Self {
+        Self {
+            reader,
+            line_buffer: String::with_capacity(512), // ~5 MB total footprint
+            record_buffer: FastqRecord::default(),
+        }
+    }
+}
+
+impl<R: BufRead> Iterator for FastqStream<R> {
+    type Item = io::Result<FastqRecord>;
+
+    /// Read one record at a time (constant memory)
+    /// No accumulation - process and discard
+    fn next(&mut self) -> Option<Self::Item> {
+        // Read FASTQ record, process, return
+        // Buffer is reused, keeping memory constant
+    }
+}
+```
+
+### Dataset Size Independence
+
+| Dataset Size | Batch Memory | Streaming Memory | Reduction |
+|--------------|--------------|------------------|-----------|
+| 10K sequences | 13.4 MB | 5 MB | 62.7% |
+| 100K sequences | 134 MB | 5 MB | 96.3% |
+| 1M sequences | 1,344 MB | 5 MB | 99.5% |
+| 10M sequences | 13,440 MB | 5 MB | 99.96% |
+| **5TB dataset** | **5,000,000 MB** | **5 MB** | **99.9999%** |
+
+**Breakthrough**: Memory footprint is constant, enabling analysis of arbitrarily large datasets on consumer hardware.
+
+### Key Insights
+
+1. **Constant memory**: Independent of dataset size (5 MB for 10K or 10M sequences)
+2. **Enables 5TB analysis**: On 24GB laptop (Data Access pillar validated)
+3. **Iterator pattern**: Natural fit for streaming (no accumulation)
+4. **Buffer reuse**: Clear and reuse, don't allocate new buffers
+5. **Combines with blocks**: 10K block buffer = ~1.5 MB (still constant)
+
+---
+
+## Rule 6: I/O Bottleneck is Critical (Network Streaming Essential)
+
+### Finding
+
+**NEON provides only 1.04-1.08× E2E speedup** (vs 16-25× isolated computation)
+
+**Root cause**: I/O dominates by 264-352× compared to compute time.
+
+### Evidence
+
+**Source**: [Lab Notebook Entry 028](lab-notebook/2025-11/20251103-028-EXPERIMENT-streaming-e2e-pipeline.md)
+- **Experiments**: 12 total (360 measurements)
+- **Pipeline**: Read FASTQ.gz → Process → Filter → Write
+- **Finding**: NEON 1.04-1.08× E2E (vs 16-25× isolated)
+- **Analysis**: I/O bottleneck is **264-352× slower** than compute
+- **Conclusion**: Network streaming + caching is CRITICAL, not optional
+
+### Bottleneck Breakdown
+
+**Without optimization**:
+- Compute time: 1.0× (baseline)
+- I/O time: **264-352×** (dominates!)
+- NEON speedup (isolated): 16-25×
+- NEON speedup (E2E): 1.04-1.08× (I/O masks compute gains)
+
+**With I/O optimization stack** (Rules 3 + 4):
+- Compute time: 1.0×
+- I/O time: 16-22× (264-352× → 16-22× with optimization)
+- NEON speedup (E2E): **~17×** (projected)
+
+### Implication for Architecture
+
+The I/O bottleneck validation makes **network streaming** a critical feature:
+
+1. **Problem**: Downloading 5TB dataset takes days/weeks on slow connections
+2. **Solution**: Stream directly from network with smart caching
+3. **Benefit**: Start analysis immediately, cache only what's needed
+4. **Result**: 5TB dataset becomes accessible without 5TB download
+
+### Network Streaming Design (Week 3-4)
+
+```rust
+/// Network streaming source (addresses I/O bottleneck)
+/// Evidence: Entry 028 (I/O dominates 264-352×)
+pub enum DataSource {
+    Local(PathBuf),
+    Http(Url),
+    Sra(String), // SRA accession
+}
+
+pub struct StreamingReader {
+    source: DataSource,
+    cache: LruCache<BlockId, Vec<u8>>,
+    prefetch: Prefetcher,
+}
+```
+
+### Key Insights
+
+1. **I/O dominates in real workloads**: Compute speedup masked by I/O bottleneck
+2. **Layered optimization essential**: Parallel bgzip + mmap reduces bottleneck 16.3×
+3. **Network streaming critical**: Enables 5TB analysis without download
+4. **Smart caching**: LRU cache balances memory and network requests
+5. **Prefetching**: Background downloads hide network latency
+
+
+---
+
+## Summary: Layered Optimization Strategy
+
+### Individual Rules (Good)
+
+| Rule | Speedup | Platform | Priority |
+|------|---------|----------|----------|
+| NEON SIMD | 16-25× | ARM | High |
+| Block-based | Preserves NEON | All | High |
+| Parallel bgzip | 6.5× | All | High |
+| Smart mmap | 2.5× | macOS | Medium |
+| Constant streaming | 99.5% mem | All | High |
+
+### Combined Stack (Exceptional)
+
+**Example**: I/O optimization demonstrates layered benefits
+
+**Layer 1** (Parallel bgzip): 6.5× speedup  
+**Layer 2** (Smart mmap): 2.5× additional  
+**Combined**: 6.5 × 2.5 = **16.3× total speedup**
+
+**E2E impact**:
+- Before: NEON 1.04-1.08× E2E (I/O bottleneck 264-352×)
+- After: Projected **17× E2E speedup** for large files
+
+**Time to process 1M sequences**:
+- Before: 12.3 seconds
+- After: 0.75 seconds (16.3× faster!)
+
+### Evidence Base
+
+- **Total experiments**: 1,357
+- **Total measurements**: 40,710 (N=30)
+- **Lab notebook entries**: 33 (full experimental log)
+- **Statistical rigor**: 95% CI, Cohen's d effect sizes
+- **Publications**: 3 papers in preparation
+
+### Implementation Timeline
+
+**Week 1-2**: Core infrastructure + I/O optimization
+- Rules 1, 2, 3, 4, 5 (streaming + NEON + parallel bgzip + mmap)
+
+**Week 3-4**: Network streaming
+- Rule 6 (HTTP/SRA streaming + caching)
+
+**Week 5-6**: Python bindings + polish
+- PyO3 wrappers for Python ecosystem
+
+---
+
+## References
+
+**Full experimental documentation**:
+- Repository: https://github.com/shandley/apple-silicon-bio-bench
+- Lab notebook: 33 entries documenting 1,357 experiments
+- Results: Comprehensive analysis in `results/` directory
+- Plots: Publication-quality visualizations
+
+**Key findings documents**:
+- DAG Framework: `results/dag_statistical/PHASE4_STATISTICAL_ANALYSIS_REPORT.md`
+- Streaming: `results/streaming/STREAMING_FINDINGS.md`
+- I/O Optimization: `results/io_optimization/MMAP_FINDINGS.md`
+- Parallel bgzip: `results/bgzip_parallel/FINAL_DECISION.md`
+
+**Publications** (in preparation):
+1. DAG Framework: BMC Bioinformatics
+2. biometal Library: Bioinformatics (Application Note) or JOSS
+3. Four-Pillar Democratization: GigaScience
+
+---
+
+**Document Version**: 1.0  
+**Date**: November 4, 2025  
+**Status**: Evidence base complete, ready for implementation  
+**Next**: biometal library implementation (Nov 4 - Dec 15, 2025)
