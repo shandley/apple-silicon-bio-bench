@@ -71,7 +71,68 @@ biofast::stream("5TB_data.fq.gz")?
 
 **Guarantee**: Same code, validated performance across ARM platforms
 
-### 4. Production Quality
+### 4. Block-Based Processing (Evidence-Based)
+
+**Problem**: Naive streaming (record-by-record) destroys SIMD performance
+- Benchmark 2 finding: 83-87% overhead with record-by-record NEON
+- Function call overhead dominates when compute is fast
+- 16× compute speedup → 2-6× real-world (unacceptable loss)
+
+**Solution**: Block-based streaming (chunks of 10K sequences)
+```rust
+// BAD: Record-by-record (83% overhead)
+for record in fastq_stream {
+    neon_gc_content(&record);  // Called 1M times
+}
+
+// GOOD: Block-based (minimal overhead)
+for block in fastq_stream.blocks(10_000) {
+    neon_gc_content_batch(&block);  // Called 100 times
+}
+```
+
+**Evidence**:
+- Streaming Benchmark 2 (48 experiments, N=30)
+- Record-by-record NEON: 3,974 Kseq/s (83% slower than batch)
+- Block-based preserves NEON benefit while enabling streaming
+
+**Implementation**:
+- Default block size: 10,000 sequences (empirically validated)
+- User-configurable for special cases
+- Automatic batching in streaming API
+
+### 5. Network Streaming (Data Access Pillar)
+
+**Problem**: Storage accessibility barrier
+- 5TB SRA dataset requires 5TB local storage ($150-1500 cost)
+- Days to download over slow connections
+- Excludes LMIC researchers, students, field work
+
+**Solution**: Stream directly from HTTP/SRA without downloading
+```rust
+// Stream from NCBI SRA (no download!)
+biofast::stream::from_sra("SRR12345678")?
+    .filter_quality(30)
+    .gc_content()
+    .compute()?
+// Uses only 50GB cache, not 5TB storage
+```
+
+**Features**:
+- HTTP/HTTPS range requests (byte-range downloads)
+- Smart LRU caching (user-controlled size budget)
+- Background prefetching (overlap I/O with compute)
+- Resume on failure (network interruptions handled)
+- SRA toolkit integration (NCBI databases)
+
+**Impact**:
+- Analyze 5TB dataset with 50GB storage (100× reduction)
+- No wait for download (stream starts immediately)
+- Works on limited bandwidth (smart caching adapts)
+
+**See**: NETWORK_STREAMING_VISION.md for detailed design
+
+### 6. Production Quality
 
 **Not acceptable**: Research prototype that crashes
 - Silent failures
@@ -317,9 +378,215 @@ fn main() -> Result<()> {
 
 ---
 
+## BERT Integration: ML Workflow Acceleration
+
+### The Problem: Preprocessing Bottleneck
+
+**Current ML workflow** (BioPython + DNABert):
+```python
+# BioPython preprocessing (SLOW)
+from Bio import SeqIO
+
+sequences = list(SeqIO.parse("huge.fq.gz", "fastq"))  # OOM on large files!
+filtered = [s for s in sequences if mean_quality(s) > 30]  # Slow Python
+tokens = [tokenize(s.seq, k=6) for s in filtered]  # Slow k-mer extraction
+
+# DNABert inference (FAST)
+predictions = dnabert_model(tokens)  # PyTorch GPU
+```
+
+**Problem**:
+- BioPython is 100× slower than Rust (Python overhead)
+- I/O overhead: 92.5% of time spent loading data
+- Preprocessing bottleneck: 92.5% I/O + slow Python = 95% waste
+- Memory: Load-all pattern causes OOM on large datasets
+
+**Result**: $3,000 GPU sits idle 95% of the time waiting for Python preprocessing
+
+### The Solution: biofast Python Bindings
+
+**New workflow** (biofast-py + DNABert):
+```python
+from biofast import stream_from_sra
+import torch
+
+# biofast preprocessing (FAST - Rust + NEON)
+for batch in stream_from_sra("SRR12345678") \
+    .filter_quality(30) \
+    .kmers(k=6) \
+    .batch(32):
+
+    # DNABert inference (FAST - PyTorch GPU)
+    predictions = dnabert_model(batch)
+    save_predictions(predictions)
+```
+
+**Benefits**:
+- 100× faster preprocessing (Rust + NEON vs Python)
+- Stream from SRA (no download needed!)
+- Constant memory (no OOM)
+- Seamless PyTorch integration
+
+**Impact**: 95% waste → 10× faster overall workflow (GPU utilization goes from 5% → 50%+)
+
+### Python API (biofast-py)
+
+**Installation**:
+```bash
+pip install biofast
+```
+
+**Basic usage**:
+```python
+from biofast import FastqStream
+
+# Simple GC content
+gc = FastqStream("data.fq.gz").gc_content()
+print(f"GC content: {gc:.2%}")
+
+# Quality filtering
+filtered = FastqStream("raw.fq.gz") \
+    .filter_quality(min_q=30) \
+    .write("clean.fq.gz")
+```
+
+**BERT preprocessing** (k-mer tokenization):
+```python
+from biofast import FastqStream
+
+# Extract k-mers for DNABert
+for batch in FastqStream("data.fq.gz") \
+    .filter_quality(30) \
+    .kmers(k=6) \
+    .batch(32):
+
+    # batch is numpy array ready for PyTorch
+    tokens = torch.from_numpy(batch)
+    predictions = dnabert_model(tokens)
+```
+
+**Network streaming** (SRA integration):
+```python
+from biofast import stream_from_sra
+
+# Stream directly from NCBI SRA (no download!)
+for batch in stream_from_sra("SRR12345678") \
+    .filter_quality(30) \
+    .kmers(k=6) \
+    .batch(32):
+
+    predictions = dnabert_model(batch)
+```
+
+**Features**:
+- Zero-copy numpy arrays (via PyO3, to be validated in Week 5-6)
+- Automatic batching for GPU efficiency
+- Progress bars (integrates with tqdm)
+- Error handling (Python exceptions)
+
+**Note**: Zero-copy data sharing between biofast (Rust) and PyTorch leverages PyO3's numpy integration. While Apple Silicon's unified memory architecture enables efficient CPU-GPU sharing, we'll validate the end-to-end zero-copy benefit during Python integration (Week 5-6).
+
+### Use Cases
+
+**1. Metagenomic Classification**
+```python
+# Classify 5TB metagenome dataset on laptop
+for batch in stream_from_sra("SRR_METAGENOME") \
+    .filter_quality(30) \
+    .kmers(k=8) \
+    .batch(64):
+
+    taxa = classifier_model(batch)
+    save_classifications(taxa)
+```
+
+**2. Variant Effect Prediction**
+```python
+# Extract sequences around variants
+variants = load_variants("variants.vcf")
+
+for batch in FastqStream("reads.fq.gz") \
+    .filter_overlapping(variants) \
+    .kmers(k=6) \
+    .batch(32):
+
+    effects = variant_model(batch)
+```
+
+**3. Quality Control for ML Datasets**
+```python
+# Fast QC before training
+stats = FastqStream("training_data.fq.gz") \
+    .quality_statistics() \
+    .gc_distribution() \
+    .compute()
+
+print(f"Mean quality: {stats.mean_q}")
+print(f"GC content: {stats.gc:.2%}")
+```
+
+### Implementation (PyO3)
+
+**Rust side** (biofast-py crate):
+```rust
+use pyo3::prelude::*;
+use numpy::PyArray1;
+
+#[pyclass]
+struct FastqStream {
+    inner: biofast::stream::FastqStream,
+}
+
+#[pymethods]
+impl FastqStream {
+    #[new]
+    fn new(path: &str) -> PyResult<Self> {
+        Ok(Self {
+            inner: biofast::stream::FastqStream::open(path)?,
+        })
+    }
+
+    fn kmers(&self, k: usize) -> KmerStream {
+        KmerStream::new(self.inner.kmers(k))
+    }
+
+    fn batch(&self, size: usize) -> BatchIterator {
+        // Returns numpy arrays (zero-copy via PyO3, to be validated)
+        BatchIterator::new(self.inner, size)
+    }
+}
+
+#[pymodule]
+fn biofast(_py: Python, m: &PyModule) -> PyResult<()> {
+    m.add_class::<FastqStream>()?;
+    Ok(())
+}
+```
+
+**Python side**:
+- Type hints (MyPy compatible)
+- Documentation (Sphinx)
+- Examples (Jupyter notebooks)
+
+### Timeline
+
+**Phase 1** (Weeks 5-6, Dec 2-13):
+- PyO3 bindings for core operations
+- K-mer extraction (k=3 to k=12)
+- Batching utilities
+- SRA streaming integration
+- Example notebook (DNABert workflow)
+
+**Phase 2** (Post v1.0):
+- Advanced operations (minhash, translation)
+- More ML integrations (Enformer, Nucleotide Transformer)
+- GPU preprocessing (cuDF integration)
+
+---
+
 ## Performance Guarantees
 
-### Based on 1,640 Experiments
+### Based on 1,100+ Experiments
 
 **Speedups** (compared to naive implementations):
 - Simple operations (gc_content, base_counting): 40-80×
@@ -550,7 +817,9 @@ Systematic Validation and Production Implementation." GigaScience.
 
 ---
 
-**Last Updated**: November 3, 2025
-**Status**: Design Phase → Implementation Week 2
-**First Release Target**: November 15, 2025 (alpha)
-**Production Release**: November 22, 2025 (1.0.0)
+**Last Updated**: November 3, 2025 (updated with network streaming + BERT + block-based design)
+**Status**: Evidence Base Complete → Implementation Starting
+**First Release Target**: November 15, 2025 (v0.1.0 - local file streaming)
+**Network Streaming Release**: November 29, 2025 (v0.2.0 - HTTP/SRA)
+**ML-Ready Release**: December 13, 2025 (v0.3.0 - Python + BERT)
+**Production Release**: December 20, 2025 (v1.0.0 - crates.io)

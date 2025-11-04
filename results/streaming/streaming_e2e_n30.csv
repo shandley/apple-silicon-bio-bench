@@ -1,0 +1,13 @@
+operation,scale,num_sequences,config,throughput_median,throughput_mean,peak_memory_mb,baseline_memory_mb,elapsed_median,elapsed_mean
+base_counting,Medium,10000,naive,76989.19,76753.60,6.44,6.44,0.129888,0.130336
+base_counting,Medium,10000,neon,79988.86,80152.14,6.45,6.45,0.125017,0.124771
+base_counting,Large,100000,naive,76657.84,76653.07,6.47,7.25,1.304498,1.304784
+base_counting,Large,100000,neon,80084.60,80082.02,7.25,7.25,1.248680,1.248750
+base_counting,VeryLarge,1000000,naive,75688.99,75423.08,7.80,7.83,13.212049,13.261554
+base_counting,VeryLarge,1000000,neon,81434.11,81371.48,7.83,7.83,12.279867,12.289399
+gc_content,Medium,10000,naive,75602.64,75528.47,7.84,7.84,0.132271,0.132401
+gc_content,Medium,10000,neon,79475.16,79436.46,7.84,7.84,0.125825,0.125888
+gc_content,Large,100000,naive,77102.83,77081.37,7.84,7.84,1.296969,1.297332
+gc_content,Large,100000,neon,79833.17,79080.36,7.86,7.86,1.252612,1.266717
+gc_content,VeryLarge,1000000,naive,77333.21,77316.30,7.86,7.86,12.931054,12.933891
+gc_content,VeryLarge,1000000,neon,81469.55,81424.00,7.86,7.86,12.274524,12.281418

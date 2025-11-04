@@ -43,6 +43,187 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 // ============================================================================
+// Statistical Rigor Types
+// ============================================================================
+
+/// Statistical summary of experiment measurements
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExperimentStatistics {
+    /// Median value (robust to outliers)
+    pub median: f64,
+
+    /// Mean value
+    pub mean: f64,
+
+    /// Standard deviation
+    pub std_dev: f64,
+
+    /// Minimum value (after outlier removal)
+    pub min: f64,
+
+    /// Maximum value (after outlier removal)
+    pub max: f64,
+
+    /// First quartile (25th percentile)
+    pub q1: f64,
+
+    /// Third quartile (75th percentile)
+    pub q3: f64,
+
+    /// Interquartile range (Q3 - Q1)
+    pub iqr: f64,
+
+    /// 95% confidence interval lower bound
+    pub ci_95_lower: f64,
+
+    /// 95% confidence interval upper bound
+    pub ci_95_upper: f64,
+
+    /// Number of valid measurements (after outlier removal)
+    pub n_valid: usize,
+
+    /// Number of outliers removed
+    pub n_outliers: usize,
+
+    /// Number of warmup runs performed
+    pub n_warmup: usize,
+}
+
+/// Remove outliers using IQR method
+///
+/// Returns (valid_measurements, outliers)
+fn remove_outliers(measurements: &[f64], threshold: f64) -> (Vec<f64>, Vec<f64>) {
+    if measurements.len() < 4 {
+        // Too few measurements for outlier detection
+        return (measurements.to_vec(), Vec::new());
+    }
+
+    let mut sorted = measurements.to_vec();
+    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+    let n = sorted.len();
+    let q1_idx = n / 4;
+    let q3_idx = 3 * n / 4;
+
+    let q1 = sorted[q1_idx];
+    let q3 = sorted[q3_idx];
+    let iqr = q3 - q1;
+
+    let lower_bound = q1 - threshold * iqr;
+    let upper_bound = q3 + threshold * iqr;
+
+    let valid: Vec<f64> = sorted
+        .iter()
+        .copied()
+        .filter(|&x| x >= lower_bound && x <= upper_bound)
+        .collect();
+
+    let outliers: Vec<f64> = sorted
+        .iter()
+        .copied()
+        .filter(|&x| x < lower_bound || x > upper_bound)
+        .collect();
+
+    (valid, outliers)
+}
+
+/// Calculate comprehensive statistics from measurements
+fn calculate_statistics(
+    measurements: &[f64],
+    outlier_threshold: f64,
+    n_warmup: usize,
+) -> Result<ExperimentStatistics> {
+    let (valid, outliers) = remove_outliers(measurements, outlier_threshold);
+
+    if valid.len() < 3 {
+        anyhow::bail!(
+            "Too few valid measurements after outlier removal: {} / {} (removed {} outliers)",
+            valid.len(),
+            measurements.len(),
+            outliers.len()
+        );
+    }
+
+    let n = valid.len() as f64;
+
+    // Mean
+    let mean = valid.iter().sum::<f64>() / n;
+
+    // Variance and std dev
+    let variance = valid
+        .iter()
+        .map(|x| (x - mean).powi(2))
+        .sum::<f64>()
+        / (n - 1.0);
+    let std_dev = variance.sqrt();
+
+    // Median and quartiles
+    let mut sorted = valid.clone();
+    sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+
+    let median_idx = sorted.len() / 2;
+    let median = if sorted.len() % 2 == 0 {
+        (sorted[median_idx - 1] + sorted[median_idx]) / 2.0
+    } else {
+        sorted[median_idx]
+    };
+
+    let q1_idx = sorted.len() / 4;
+    let q3_idx = 3 * sorted.len() / 4;
+    let q1 = sorted[q1_idx];
+    let q3 = sorted[q3_idx];
+    let iqr = q3 - q1;
+
+    let min = *sorted.first().unwrap();
+    let max = *sorted.last().unwrap();
+
+    // 95% Confidence Interval (t-distribution)
+    let df = valid.len() - 1;
+    let t_critical = t_critical_value(df, 0.05);
+    let margin_of_error = t_critical * (std_dev / n.sqrt());
+    let ci_95_lower = mean - margin_of_error;
+    let ci_95_upper = mean + margin_of_error;
+
+    Ok(ExperimentStatistics {
+        median,
+        mean,
+        std_dev,
+        min,
+        max,
+        q1,
+        q3,
+        iqr,
+        ci_95_lower,
+        ci_95_upper,
+        n_valid: valid.len(),
+        n_outliers: outliers.len(),
+        n_warmup,
+    })
+}
+
+/// Get t-critical value for 95% confidence interval
+///
+/// Simplified lookup table. For production use statrs crate.
+fn t_critical_value(df: usize, alpha: f64) -> f64 {
+    if alpha != 0.05 {
+        return 2.0; // Conservative default
+    }
+
+    match df {
+        0..=4 => 2.776,
+        5..=9 => 2.262,
+        10..=14 => 2.145,
+        15..=19 => 2.093,
+        20..=24 => 2.064,
+        25..=29 => 2.045,
+        30..=39 => 2.021,
+        40..=49 => 2.009,
+        50..=99 => 1.984,
+        _ => 1.96, // For large df, use normal approximation
+    }
+}
+
+// ============================================================================
 // Core Types
 // ============================================================================
 
@@ -66,6 +247,15 @@ pub struct DAGConfig {
 
     /// Which batch to run (neon_parallel, core_affinity, scale_thresholds)
     pub batch: DAGBatch,
+
+    /// Number of repetitions per experiment (default: 30 for publication quality)
+    pub repetitions: usize,
+
+    /// Number of warmup runs to discard (default: 3)
+    pub warmup_runs: usize,
+
+    /// Outlier detection threshold (IQR multiplier, default: 1.5)
+    pub outlier_threshold: f64,
 }
 
 /// DAG batch type
@@ -221,7 +411,7 @@ impl CoreAffinity {
     }
 }
 
-/// Result from a single experiment
+/// Result from a single experiment (with full statistical rigor)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExperimentResult {
     /// Operation name
@@ -245,17 +435,75 @@ pub struct ExperimentResult {
     /// Number of sequences
     pub num_sequences: usize,
 
-    /// Throughput (sequences/second)
-    pub throughput: f64,
-
-    /// Speedup vs naive baseline
-    pub speedup_vs_naive: f64,
-
     /// Was this configuration pruned?
     pub pruned: bool,
 
-    /// Elapsed time (seconds)
-    pub elapsed_secs: f64,
+    // === Throughput Statistics (sequences/second) ===
+    /// Median throughput (robust to outliers)
+    pub throughput_median: f64,
+
+    /// Mean throughput
+    pub throughput_mean: f64,
+
+    /// Throughput standard deviation
+    pub throughput_std_dev: f64,
+
+    /// Throughput 95% CI lower bound
+    pub throughput_ci_lower: f64,
+
+    /// Throughput 95% CI upper bound
+    pub throughput_ci_upper: f64,
+
+    // === Speedup Statistics (vs naive baseline) ===
+    /// Median speedup vs naive
+    pub speedup_median: f64,
+
+    /// Mean speedup vs naive
+    pub speedup_mean: f64,
+
+    /// Speedup standard deviation
+    pub speedup_std_dev: f64,
+
+    /// Speedup 95% CI lower bound
+    pub speedup_ci_lower: f64,
+
+    /// Speedup 95% CI upper bound
+    pub speedup_ci_upper: f64,
+
+    // === Elapsed Time Statistics (seconds) ===
+    /// Median elapsed time
+    pub elapsed_median: f64,
+
+    /// Mean elapsed time
+    pub elapsed_mean: f64,
+
+    /// Elapsed time standard deviation
+    pub elapsed_std_dev: f64,
+
+    /// Min elapsed time
+    pub elapsed_min: f64,
+
+    /// Max elapsed time
+    pub elapsed_max: f64,
+
+    /// Elapsed time Q1 (25th percentile)
+    pub elapsed_q1: f64,
+
+    /// Elapsed time Q3 (75th percentile)
+    pub elapsed_q3: f64,
+
+    /// Elapsed time IQR
+    pub elapsed_iqr: f64,
+
+    // === Sample Statistics ===
+    /// Number of valid measurements (after outlier removal)
+    pub n_valid: usize,
+
+    /// Number of outliers removed
+    pub n_outliers: usize,
+
+    /// Number of warmup runs
+    pub n_warmup: usize,
 }
 
 // ============================================================================
@@ -281,7 +529,7 @@ impl PruningStrategy {
 
     /// Should we prune this alternative?
     pub fn should_prune_alternative(&self, result: &ExperimentResult) -> bool {
-        result.speedup_vs_naive < self.speedup_threshold
+        result.speedup_median < self.speedup_threshold
     }
 
     /// Should we stop testing more threads?
@@ -291,7 +539,7 @@ impl PruningStrategy {
         parent_speedup: f64,
     ) -> bool {
         // If additional benefit is less than threshold, prune
-        let additional_benefit = result.speedup_vs_naive / parent_speedup;
+        let additional_benefit = result.speedup_median / parent_speedup;
         additional_benefit < self.diminishing_returns_threshold
     }
 }
@@ -371,7 +619,7 @@ impl DAGTraversal {
                 // Store baseline for speedup calculations
                 self.naive_baselines.insert(
                     (operation.clone(), scale.name.to_string()),
-                    naive_result.throughput,
+                    naive_result.throughput_median,
                 );
 
                 // Phase 2: Test NEON
@@ -380,23 +628,23 @@ impl DAGTraversal {
                     operation,
                     &neon_node,
                     scale,
-                    naive_result.throughput,
+                    naive_result.throughput_median,
                 )?;
                 results.push(neon_result.clone());
 
                 // Check if NEON should be pruned
                 if strategy.should_prune_alternative(&neon_result) {
-                    println!("    ❌ NEON pruned ({}× < {}×)",
-                             neon_result.speedup_vs_naive,
+                    println!("    ❌ NEON pruned ({:.2}× < {}×)",
+                             neon_result.speedup_median,
                              strategy.speedup_threshold);
                     self.pruned_nodes.insert((operation.clone(), neon_node));
                     continue;
                 }
 
-                println!("    ✅ NEON kept ({}×)", neon_result.speedup_vs_naive);
+                println!("    ✅ NEON kept ({:.2}×)", neon_result.speedup_median);
 
                 // Phase 3: Test NEON+Parallel compositions
-                let mut parent_speedup = neon_result.speedup_vs_naive;
+                let mut parent_speedup = neon_result.speedup_median;
 
                 for threads in &[2, 4] {
                     let parallel_node = DAGNode::neon_parallel(*threads);
@@ -404,26 +652,26 @@ impl DAGTraversal {
                         operation,
                         &parallel_node,
                         scale,
-                        naive_result.throughput,
+                        naive_result.throughput_median,
                     )?;
                     results.push(parallel_result.clone());
 
                     // Check for diminishing returns
                     if strategy.should_prune_composition(&parallel_result, parent_speedup) {
-                        println!("    ❌ NEON+{}t pruned (additional benefit {}× < {}×)",
+                        println!("    ❌ NEON+{}t pruned (additional benefit {:.2}× < {}×)",
                                  threads,
-                                 parallel_result.speedup_vs_naive / parent_speedup,
+                                 parallel_result.speedup_median / parent_speedup,
                                  strategy.diminishing_returns_threshold);
                         self.pruned_nodes.insert((operation.clone(), parallel_node));
                         break; // Don't test higher thread counts
                     }
 
-                    println!("    ✅ NEON+{}t kept ({}×, additional {}×)",
+                    println!("    ✅ NEON+{}t kept ({:.2}×, additional {:.2}×)",
                              threads,
-                             parallel_result.speedup_vs_naive,
-                             parallel_result.speedup_vs_naive / parent_speedup);
+                             parallel_result.speedup_median,
+                             parallel_result.speedup_median / parent_speedup);
 
-                    parent_speedup = parallel_result.speedup_vs_naive;
+                    parent_speedup = parallel_result.speedup_median;
                 }
             }
 
@@ -527,7 +775,7 @@ impl DAGTraversal {
         } else {
             let naive_node = DAGNode::naive();
             let result = self.run_experiment(operation, &naive_node, scale)?;
-            let throughput = result.throughput;
+            let throughput = result.throughput_median;
             self.naive_baselines.insert(key, throughput);
             Ok(throughput)
         }
@@ -540,8 +788,8 @@ impl DAGTraversal {
         node: &DAGNode,
         scale: &Scale,
     ) -> Result<ExperimentResult> {
-        let baseline_throughput = 0.0; // Will be set to itself
-        self.run_experiment_impl(operation, node, scale, Some(baseline_throughput))
+        // Pass None so speedup is calculated as throughput / throughput = 1.0
+        self.run_experiment_impl(operation, node, scale, None)
     }
 
     /// Run experiment with known baseline
@@ -555,7 +803,7 @@ impl DAGTraversal {
         self.run_experiment_impl(operation, node, scale, Some(baseline_throughput))
     }
 
-    /// Implementation of experiment execution
+    /// Implementation of experiment execution with full statistical rigor
     fn run_experiment_impl(
         &mut self,
         operation: &str,
@@ -571,49 +819,67 @@ impl DAGTraversal {
 
         // Check if pruned
         if self.pruned_nodes.contains(&(operation.to_string(), node.clone())) {
-            // Return a "pruned" result
-            return Ok(ExperimentResult {
-                operation: operation.to_string(),
-                config_name: node.name(),
-                config_type: node.config_type,
-                threads: node.threads,
-                affinity: node.affinity.name().to_string(),
-                scale: scale.name.to_string(),
-                num_sequences: scale.num_sequences,
-                throughput: 0.0,
-                speedup_vs_naive: 0.0,
-                pruned: true,
-                elapsed_secs: 0.0,
-            });
+            // Return a "pruned" result with zero statistics
+            return Ok(self.create_pruned_result(operation, node, scale));
         }
 
-        // Load sequences
+        // Load sequences ONCE
         let sequences = load_sequences(scale.path)
             .with_context(|| format!("Failed to load dataset: {}", scale.path))?;
 
-        // Load operation
+        // Load operation ONCE
         let op_instance = create_operation(operation)?;
 
-        // Execute with timing
-        let start = Instant::now();
-        let _output = execute_operation(&*op_instance, &sequences, node)?;
-        let elapsed = start.elapsed();
+        // === WARMUP PHASE ===
+        for _ in 0..self.config.warmup_runs {
+            let _output = execute_operation(&*op_instance, &sequences, node)?;
+        }
 
-        // Calculate throughput
-        let elapsed_secs = elapsed.as_secs_f64();
-        let throughput = scale.num_sequences as f64 / elapsed_secs;
+        // === MEASUREMENT PHASE ===
+        let mut elapsed_times = Vec::with_capacity(self.config.repetitions);
 
-        // Calculate speedup
-        let speedup_vs_naive = if let Some(baseline) = baseline_throughput {
-            if baseline > 0.0 {
-                throughput / baseline
-            } else {
-                1.0 // This IS the baseline
-            }
-        } else {
-            1.0
-        };
+        for _ in 0..self.config.repetitions {
+            let start = Instant::now();
+            let _output = execute_operation(&*op_instance, &sequences, node)?;
+            let elapsed = start.elapsed();
+            elapsed_times.push(elapsed.as_secs_f64());
+        }
 
+        // === STATISTICAL ANALYSIS ===
+        let elapsed_stats = calculate_statistics(
+            &elapsed_times,
+            self.config.outlier_threshold,
+            self.config.warmup_runs,
+        )?;
+
+        // Calculate throughput from elapsed times (throughput = sequences/elapsed)
+        let throughput_measurements: Vec<f64> = elapsed_times
+            .iter()
+            .map(|&elapsed| scale.num_sequences as f64 / elapsed)
+            .collect();
+
+        let throughput_stats = calculate_statistics(
+            &throughput_measurements,
+            self.config.outlier_threshold,
+            self.config.warmup_runs,
+        )?;
+
+        // Calculate speedup statistics
+        let baseline = baseline_throughput.unwrap_or(throughput_stats.median);
+        let baseline = if baseline > 0.0 { baseline } else { 1.0 };
+
+        let speedup_measurements: Vec<f64> = throughput_measurements
+            .iter()
+            .map(|&t| t / baseline)
+            .collect();
+
+        let speedup_stats = calculate_statistics(
+            &speedup_measurements,
+            self.config.outlier_threshold,
+            self.config.warmup_runs,
+        )?;
+
+        // Create result with comprehensive statistics
         let result = ExperimentResult {
             operation: operation.to_string(),
             config_name: node.name(),
@@ -622,16 +888,82 @@ impl DAGTraversal {
             affinity: node.affinity.name().to_string(),
             scale: scale.name.to_string(),
             num_sequences: scale.num_sequences,
-            throughput,
-            speedup_vs_naive,
             pruned: false,
-            elapsed_secs,
+
+            // Throughput statistics
+            throughput_median: throughput_stats.median,
+            throughput_mean: throughput_stats.mean,
+            throughput_std_dev: throughput_stats.std_dev,
+            throughput_ci_lower: throughput_stats.ci_95_lower,
+            throughput_ci_upper: throughput_stats.ci_95_upper,
+
+            // Speedup statistics
+            speedup_median: speedup_stats.median,
+            speedup_mean: speedup_stats.mean,
+            speedup_std_dev: speedup_stats.std_dev,
+            speedup_ci_lower: speedup_stats.ci_95_lower,
+            speedup_ci_upper: speedup_stats.ci_95_upper,
+
+            // Elapsed time statistics
+            elapsed_median: elapsed_stats.median,
+            elapsed_mean: elapsed_stats.mean,
+            elapsed_std_dev: elapsed_stats.std_dev,
+            elapsed_min: elapsed_stats.min,
+            elapsed_max: elapsed_stats.max,
+            elapsed_q1: elapsed_stats.q1,
+            elapsed_q3: elapsed_stats.q3,
+            elapsed_iqr: elapsed_stats.iqr,
+
+            // Sample statistics
+            n_valid: elapsed_stats.n_valid,
+            n_outliers: elapsed_stats.n_outliers,
+            n_warmup: elapsed_stats.n_warmup,
         };
 
         // Cache result
         self.tested_nodes.insert(key, result.clone());
 
         Ok(result)
+    }
+
+    /// Create a pruned result with zero statistics
+    fn create_pruned_result(
+        &self,
+        operation: &str,
+        node: &DAGNode,
+        scale: &Scale,
+    ) -> ExperimentResult {
+        ExperimentResult {
+            operation: operation.to_string(),
+            config_name: node.name(),
+            config_type: node.config_type,
+            threads: node.threads,
+            affinity: node.affinity.name().to_string(),
+            scale: scale.name.to_string(),
+            num_sequences: scale.num_sequences,
+            pruned: true,
+            throughput_median: 0.0,
+            throughput_mean: 0.0,
+            throughput_std_dev: 0.0,
+            throughput_ci_lower: 0.0,
+            throughput_ci_upper: 0.0,
+            speedup_median: 0.0,
+            speedup_mean: 0.0,
+            speedup_std_dev: 0.0,
+            speedup_ci_lower: 0.0,
+            speedup_ci_upper: 0.0,
+            elapsed_median: 0.0,
+            elapsed_mean: 0.0,
+            elapsed_std_dev: 0.0,
+            elapsed_min: 0.0,
+            elapsed_max: 0.0,
+            elapsed_q1: 0.0,
+            elapsed_q3: 0.0,
+            elapsed_iqr: 0.0,
+            n_valid: 0,
+            n_outliers: 0,
+            n_warmup: 0,
+        }
     }
 }
 
@@ -721,22 +1053,31 @@ fn load_sequences(path: &str) -> Result<Vec<SequenceRecord>> {
 // CSV Output
 // ============================================================================
 
-/// Write results to CSV
+/// Write results to CSV with comprehensive statistics
 pub fn write_results_csv(results: &[ExperimentResult], path: &Path) -> Result<()> {
     let mut file = File::create(path)
         .with_context(|| format!("Failed to create CSV file: {}", path.display()))?;
 
-    // Write header
+    // Write header with all statistical columns
     writeln!(
         file,
-        "operation,config_name,config_type,threads,affinity,scale,num_sequences,throughput,speedup,pruned,elapsed_secs"
+        "operation,config_name,config_type,threads,affinity,scale,num_sequences,pruned,\
+        throughput_median,throughput_mean,throughput_std_dev,throughput_ci_lower,throughput_ci_upper,\
+        speedup_median,speedup_mean,speedup_std_dev,speedup_ci_lower,speedup_ci_upper,\
+        elapsed_median,elapsed_mean,elapsed_std_dev,elapsed_min,elapsed_max,elapsed_q1,elapsed_q3,elapsed_iqr,\
+        n_valid,n_outliers,n_warmup"
     )?;
 
-    // Write data rows
+    // Write data rows with all statistics
     for result in results {
         writeln!(
             file,
-            "{},{},{:?},{},{},{},{},{:.2},{:.2},{},{:.4}",
+            "{},{},{:?},{},{},{},{},{},\
+            {:.2},{:.2},{:.2},{:.2},{:.2},\
+            {:.4},{:.4},{:.4},{:.4},{:.4},\
+            {:.6},{:.6},{:.6},{:.6},{:.6},{:.6},{:.6},{:.6},\
+            {},{},{}",
+            // Metadata
             result.operation,
             result.config_name,
             result.config_type,
@@ -744,16 +1085,41 @@ pub fn write_results_csv(results: &[ExperimentResult], path: &Path) -> Result<()
             result.affinity,
             result.scale,
             result.num_sequences,
-            result.throughput,
-            result.speedup_vs_naive,
             result.pruned,
-            result.elapsed_secs,
+            // Throughput statistics (seq/sec - 2 decimal places)
+            result.throughput_median,
+            result.throughput_mean,
+            result.throughput_std_dev,
+            result.throughput_ci_lower,
+            result.throughput_ci_upper,
+            // Speedup statistics (4 decimal places for precision)
+            result.speedup_median,
+            result.speedup_mean,
+            result.speedup_std_dev,
+            result.speedup_ci_lower,
+            result.speedup_ci_upper,
+            // Elapsed time statistics (seconds - 6 decimal places for precision)
+            result.elapsed_median,
+            result.elapsed_mean,
+            result.elapsed_std_dev,
+            result.elapsed_min,
+            result.elapsed_max,
+            result.elapsed_q1,
+            result.elapsed_q3,
+            result.elapsed_iqr,
+            // Sample statistics
+            result.n_valid,
+            result.n_outliers,
+            result.n_warmup,
         )?;
     }
 
     file.flush()?;
 
     println!("✅ Results written to: {}", path.display());
+    println!("   📊 {} experiments with N={} repetitions each",
+             results.len(),
+             results.first().map(|r| r.n_valid + r.n_outliers).unwrap_or(0));
 
     Ok(())
 }
@@ -767,14 +1133,22 @@ fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() < 3 {
-        eprintln!("Usage: asbb-dag-traversal --batch <batch_type> --output <path>");
+        eprintln!("Usage: asbb-dag-traversal --batch <batch_type> --output <path> [OPTIONS]");
         eprintln!("Batch types: neon_parallel, core_affinity, scale_thresholds");
+        eprintln!();
+        eprintln!("Options:");
+        eprintln!("  --repetitions <N>         Number of repetitions per experiment (default: 30)");
+        eprintln!("  --warmup <N>              Number of warmup runs to discard (default: 3)");
+        eprintln!("  --outlier-threshold <F>   IQR multiplier for outlier detection (default: 1.5)");
         std::process::exit(1);
     }
 
     // Simple argument parsing
     let mut batch_type = None;
     let mut output_path = None;
+    let mut repetitions = 30; // Default: publication quality
+    let mut warmup_runs = 3;  // Default: eliminate cold-start effects
+    let mut outlier_threshold = 1.5; // Default: standard IQR method
 
     let mut i = 1;
     while i < args.len() {
@@ -791,6 +1165,27 @@ fn main() -> Result<()> {
                     output_path = Some(PathBuf::from(&args[i]));
                 }
             }
+            "--repetitions" => {
+                i += 1;
+                if i < args.len() {
+                    repetitions = args[i].parse()
+                        .with_context(|| format!("Invalid repetitions value: {}", args[i]))?;
+                }
+            }
+            "--warmup" => {
+                i += 1;
+                if i < args.len() {
+                    warmup_runs = args[i].parse()
+                        .with_context(|| format!("Invalid warmup value: {}", args[i]))?;
+                }
+            }
+            "--outlier-threshold" => {
+                i += 1;
+                if i < args.len() {
+                    outlier_threshold = args[i].parse()
+                        .with_context(|| format!("Invalid outlier-threshold value: {}", args[i]))?;
+                }
+            }
             _ => {}
         }
         i += 1;
@@ -802,6 +1197,12 @@ fn main() -> Result<()> {
         .ok_or_else(|| anyhow::anyhow!("Missing --output argument"))?;
 
     let batch = DAGBatch::from_str(&batch_type)?;
+
+    println!("📊 Statistical Parameters:");
+    println!("   Repetitions per experiment: {}", repetitions);
+    println!("   Warmup runs: {}", warmup_runs);
+    println!("   Outlier threshold (IQR): {}x", outlier_threshold);
+    println!();
 
     // Full run with 10 operations (Level 1 primitives)
     let operations = vec![
@@ -843,6 +1244,9 @@ fn main() -> Result<()> {
         diminishing_returns_threshold: 1.3,
         output_path,
         batch,
+        repetitions,
+        warmup_runs,
+        outlier_threshold,
     };
 
     // Run DAG traversal

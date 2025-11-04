@@ -20,6 +20,12 @@ rand = "0.8"
 rand_chacha = "0.3"
 rayon.workspace = true
 chrono = "0.4"
+flate2 = "1.0"
+zstd = "0.13"
+metal = "0.32.0"
+objc = "0.2.7"
+memmap2 = "0.9"
+libc = "0.2"
 
 [features]
 default = []
@@ -132,3 +138,43 @@ path = "src/pilot_graviton.rs"
 [[bin]]
 name = "asbb-dag-traversal"
 path = "src/dag_traversal.rs"
+
+[[bin]]
+name = "io-overhead-benchmark"
+path = "src/bin/io_overhead_benchmark.rs"
+
+[[bin]]
+name = "streaming-memory-benchmark"
+path = "src/bin/streaming_memory_benchmark.rs"
+
+[[bin]]
+name = "streaming-memory-benchmark-v2"
+path = "src/bin/streaming_memory_benchmark_v2.rs"
+
+[[bin]]
+name = "streaming-overhead-benchmark"
+path = "src/bin/streaming_overhead_benchmark.rs"
+
+[[bin]]
+name = "streaming-e2e-benchmark"
+path = "src/bin/streaming_e2e_benchmark.rs"
+
+[[bin]]
+name = "bgzip-parallel-benchmark"
+path = "src/bin/bgzip_parallel_benchmark.rs"
+
+[[bin]]
+name = "metal-feasibility-test"
+path = "src/bin/metal_feasibility_test.rs"
+
+[[bin]]
+name = "metal-deflate-benchmark"
+path = "src/bin/metal_deflate_benchmark.rs"
+
+[[bin]]
+name = "mmap-io-benchmark"
+path = "src/bin/mmap_io_benchmark.rs"
+
+[[bin]]
+name = "mmap-scale-benchmark"
+path = "src/bin/mmap_scale_benchmark.rs"
