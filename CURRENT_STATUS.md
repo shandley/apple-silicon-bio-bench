@@ -8,7 +8,7 @@
 3. 🔄 **Portability**: Vendor lock-in (x86-only, cloud-only tools)
 4. 📊 **Data Access**: Storage barriers (5TB datasets, 500GB laptops)
 
-**Delivering democratization through `biofast`** - production library enabling 5TB analysis on consumer hardware with network streaming.
+**Delivering democratization through `biometal`** - production library enabling 5TB analysis on consumer hardware with network streaming.
 
 ---
 
@@ -20,9 +20,9 @@
 - Analysis paralysis (when do we have "enough" data?)
 
 ### New Approach ✅
-- **Evidence base COMPLETE** (1,100+ experiments)
+- **Evidence base COMPLETE** (1,357 experiments)
 - **Streaming validation COMPLETE** (3 benchmarks, 72 experiments)
-- **biofast implementation STARTING** (Nov 4, 2025)
+- **biometal implementation STARTING** (Nov 4, 2025)
 - Complete story: Evidence → Design → Implementation
 
 **Why this is stronger**:
@@ -33,11 +33,11 @@
 
 ---
 
-## Current Phase: biofast Library Development (Starting November 4, 2025)
+## Current Phase: biometal Library Development (Starting November 4, 2025)
 
 ### What We Have ✅
 
-**Experimental Foundation** (1,100+ experiments):
+**Experimental Foundation** (1,357 experiments):
 - ✅ DAG Hardware Validation: 307 experiments (N=30, statistical rigor)
   - Finding: NEON provides 16-25× speedup for element-wise operations
   - Finding: GPU/AMX/2-bit don't help (negative findings documented)
@@ -110,11 +110,11 @@
 - Streaming: `results/streaming/STREAMING_FINDINGS.md`
 - Parallel bgzip + GPU investigation: `results/bgzip_parallel/FINAL_DECISION.md`
 - mmap optimization: `results/io_optimization/MMAP_FINDINGS.md`
-- Integration plan: `results/io_optimization/BIOFAST_IO_INTEGRATION_PLAN.md`
+- Integration plan: `results/io_optimization/BIOMETAL_IO_INTEGRATION_PLAN.md`
 
 ### What's Next 🔨
 
-**Phase 2: biofast Library Development** (Nov 4 - Dec 15, 4-6 weeks)
+**Phase 2: biometal Library Development** (Nov 4 - Dec 15, 6-7 weeks)
 
 **Week 1-2: Core Infrastructure + I/O Optimization** (Nov 4-15)
 - Streaming FASTQ/FASTA parser
@@ -132,7 +132,7 @@
 - Resume on failure
 
 **Week 5-6: Python + SRA** (Dec 2-13)
-- PyO3 bindings (biofast-py)
+- PyO3 bindings (biometal-py)
 - SRA toolkit integration
 - K-mer utilities (for BERT preprocessing)
 - Example notebooks (DNABert workflow)
@@ -268,16 +268,17 @@
 
 ## Documentation Status
 
-**Updated** (November 3, 2025):
-- ✅ README.md - Complete rewrite (biofast library vision)
+**Updated** (November 4, 2025):
+- ✅ README.md - Complete rewrite (biometal library vision)
 - ✅ CURRENT_STATUS.md - This file
-- ⏳ BIOFAST_VISION.md - Needs network streaming + BERT updates
-- ⏳ ROADMAP.md - Needs 4-6 week biofast timeline
-- ⏳ CLAUDE.md - Needs biofast development guidelines
+- ✅ CLAUDE.md - Updated with biometal development guidelines
+- ✅ ROADMAP.md - Updated with 6-7 week biometal timeline
+- ✅ OPTIMIZATION_RULES.md - Distilled from 1,357 experiments (Artifact 1)
 
-**To Create**:
-- ⏳ NETWORK_STREAMING_VISION.md - HTTP/SRA streaming design
-- ⏳ Streaming benchmarks FINDINGS.md (after Benchmark 3)
+**biometal Repository Created**:
+- ✅ https://github.com/shandley/biometal - Separate repo for production library
+- Clean structure: ~2,500 lines (vs ASBB's 50k+)
+- Evidence-based design from 1,357 experiments
 
 **Archived** (archive/2025-11-03-pre-biofast-pivot/):
 - METHODOLOGY.md (superseded by DAG_FRAMEWORK.md)
@@ -329,13 +330,13 @@
 ## Success Criteria
 
 ### Scientific Excellence ✅
-- 1,100+ experiments (systematic, reproducible)
+- 1,357 experiments (systematic, reproducible)
 - Novel methodology (DAG framework)
 - All 4 pillars validated experimentally
 - Cross-platform (Mac, Graviton, future RPi)
 
 ### Practical Impact ✅
-- biofast library on crates.io
+- biometal library on crates.io
 - Researchers get 16-25× speedups immediately
 - Network streaming enables 5TB analysis without download
 - Auto-optimization (no manual tuning required)
@@ -359,7 +360,7 @@
 
 ### Insight 1: Block-Based Processing Required
 **Evidence**: Benchmark 2 showed 83-87% overhead with record-by-record NEON
-**Implication**: biofast must process in blocks of ~10K sequences, not one-at-a-time
+**Implication**: biometal must process in blocks of ~10K sequences, not one-at-a-time
 **Impact**: Preserves NEON speedup while maintaining streaming benefits
 
 ### Insight 2: Memory Reduction Validated
@@ -374,14 +375,14 @@
 
 ---
 
-**Last Updated**: November 4, 2025 (02:00 PST)
-**Phase**: biofast Library Development (Starting Nov 4)
+**Last Updated**: November 4, 2025
+**Phase**: biometal Library Development (Starting Nov 4)
 **Milestone**: 🎉 All 4 pillars validated experimentally!
-**Next Milestone**: biofast v0.1.0 (Core infrastructure, Nov 15)
+**Next Milestone**: biometal v0.1.0 (Core infrastructure, Nov 15)
 **Owner**: Scott Handley + Claude
 
 **For detailed timeline**: See ROADMAP.md
-**For library design**: See BIOFAST_VISION.md
-**For network streaming**: See NETWORK_STREAMING_VISION.md
+**For optimization rules**: See OPTIMIZATION_RULES.md (Artifact 1)
 **For development guidelines**: See CLAUDE.md
 **For streaming validation**: See results/streaming/STREAMING_FINDINGS.md
+**For biometal repo**: https://github.com/shandley/biometal

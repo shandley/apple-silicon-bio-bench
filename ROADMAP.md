@@ -1,4 +1,4 @@
-# biofast: 6-7 Week Development Roadmap
+# biometal: 6-7 Week Development Roadmap
 
 **Goal**: Transform evidence base (1,100+ experiments) into production library
 
@@ -13,7 +13,7 @@
 - Measuring memory reduction, performance overhead
 - Informing block-based processing implementation
 
-**Next Phase** (Nov 4 - Dec 20): biofast Development (6-7 weeks)
+**Next Phase** (Nov 4 - Dec 20): biometal Development (6-7 weeks)
 - Week 1-2: Core Infrastructure (v0.1.0 - local file streaming)
 - Week 3-4: Network Streaming (v0.2.0 - HTTP/SRA)
 - Week 5-6: Python + ML Integration (v0.3.0 - BERT-ready)
@@ -57,7 +57,7 @@
 
 ## Week 1-2: Core Infrastructure + I/O Optimization (Nov 4-15, 2025)
 
-### Goal: biofast v0.1.0 - Local File Streaming with I/O Optimization
+### Goal: biometal v0.1.0 - Local File Streaming with I/O Optimization
 
 **Focus**: Production-quality streaming architecture with 16.3× I/O speedup for large files
 - CPU parallel bgzip decompression (6.5×, all platforms)
@@ -66,7 +66,7 @@
 ### Day 1-3 (Nov 4-6): Streaming Foundation
 
 **Morning Sessions**:
-- [ ] Create `crates/biofast/` package structure
+- [ ] Work in biometal repository (https://github.com/shandley/biometal)
 - [ ] Implement core types:
   - `FastqRecord` (id, sequence, quality)
   - `FastaRecord` (id, sequence)
@@ -172,7 +172,7 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 - [ ] Documentation (rustdoc)
 - [ ] Examples (examples/ directory)
 
-**Deliverable**: biofast v0.1.0 ready for release
+**Deliverable**: biometal v0.1.0 ready for release
 
 ### Day 11 (Nov 14): Testing + Documentation
 
@@ -181,13 +181,13 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 - [ ] Documentation review (README, API docs)
 - [ ] Examples polish
 
-**Deliverable**: biofast v0.1.0 RELEASED (local file streaming)
+**Deliverable**: biometal v0.1.0 RELEASED (local file streaming)
 
 ---
 
 ## Week 3-4: Network Streaming (Nov 18-29, 2025)
 
-### Goal: biofast v0.2.0 - HTTP/SRA Streaming
+### Goal: biometal v0.2.0 - HTTP/SRA Streaming
 
 **Focus**: Eliminate storage barrier (analyze 5TB datasets with 50GB cache)
 
@@ -212,7 +212,7 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 **Features**:
 - [ ] Smart caching:
   - LRU cache (user-controlled size)
-  - Cache to `~/.biofast/cache/` by default
+  - Cache to `~/.biometal/cache/` by default
   - `--cache-size` flag (e.g., `--cache-size 50GB`)
   - Automatic eviction when full
 
@@ -238,7 +238,7 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 
 - [ ] API:
   ```rust
-  biofast::stream::from_sra("SRR12345678")?
+  biometal::stream::from_sra("SRR12345678")?
       .filter_quality(30)
       .gc_content()
       .compute()?
@@ -263,23 +263,23 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 - [ ] Performance validation
 - [ ] Integration tests
 
-**Deliverable**: biofast v0.2.0 RELEASED (network streaming)
+**Deliverable**: biometal v0.2.0 RELEASED (network streaming)
 
 ---
 
 ## Week 5-6: Python + ML Integration (Dec 2-13, 2025)
 
-### Goal: biofast v0.3.0 - BERT-Ready
+### Goal: biometal v0.3.0 - BERT-Ready
 
 **Focus**: Eliminate preprocessing bottleneck for ML workflows
 
 ### Day 21-23 (Dec 2-4): PyO3 Bindings
 
 **Implementation**:
-- [ ] Create `biofast-py` crate (PyO3)
+- [ ] Create `biometal-py` crate (PyO3)
 - [ ] Python API:
   ```python
-  from biofast import FastqStream
+  from biometal import FastqStream
 
   gc = FastqStream("data.fq.gz").gc_content()
   ```
@@ -360,13 +360,13 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 - [ ] Example notebooks polished
 - [ ] Tutorial (DNABert workflow)
 
-**Deliverable**: biofast v0.3.0 RELEASED (ML-ready)
+**Deliverable**: biometal v0.3.0 RELEASED (ML-ready)
 
 ---
 
 ## Week 7+: Production Polish (Dec 16-20, 2025)
 
-### Goal: biofast v1.0.0 - Production Release
+### Goal: biometal v1.0.0 - Production Release
 
 **Focus**: Production quality, comprehensive documentation
 
@@ -409,7 +409,7 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 - [ ] Publish to PyPI (Python)
 - [ ] Publish to Conda (bioconda)
 
-**Deliverable**: biofast v1.0.0 RELEASED (production-ready)
+**Deliverable**: biometal v1.0.0 RELEASED (production-ready)
 
 ---
 
@@ -430,7 +430,7 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 
 ### Week 9-10: Paper Writing
 
-**Manuscript** (biofast library paper):
+**Manuscript** (biometal library paper):
 - Target: Bioinformatics or JOSS
 - Target submission: February 2026
 
@@ -445,7 +445,7 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 - Figure 1: Architecture diagram (streaming + network)
 - Figure 2: Performance validation (speedups)
 - Figure 3: Memory usage (streaming vs load-all)
-- Figure 4: BERT workflow (before/after biofast)
+- Figure 4: BERT workflow (before/after biometal)
 - Figure 5: Case studies (real datasets)
 
 ### Month 2-3: Extensions
@@ -464,7 +464,7 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 **Community contributions**:
 - [ ] Accept PRs for new operations
 - [ ] Accept PRs for new platforms
-- [ ] Build community around biofast
+- [ ] Build community around biometal
 
 ---
 
@@ -596,11 +596,11 @@ biofast filter --min-quality 30 input.fq.gz -o filtered.fq.gz
 
 ---
 
-**Last Updated**: November 3, 2025
-**Status**: Phase 0 (Streaming Benchmarks) 67% complete
-**Next Milestone**: Complete streaming benchmarks (Nov 4)
-**First Release**: biofast v0.1.0 (Nov 15, 2025)
-**Production Release**: biofast v1.0.0 (Dec 20, 2025)
+**Last Updated**: November 4, 2025
+**Status**: Phase 0 COMPLETE → biometal Development Starting
+**Next Milestone**: biometal v0.1.0 (Nov 15, 2025)
+**Production Release**: biometal v1.0.0 (Dec 20, 2025)
+**Repository**: https://github.com/shandley/biometal
 
 **Owner**: Scott Handley + Claude
 **Timeline**: 6-7 weeks (flexible based on quality, not deadline)

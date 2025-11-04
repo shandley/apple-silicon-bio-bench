@@ -1,24 +1,26 @@
-# ASBB + biofast: Claude Development Guide
+# ASBB: Claude Development Guide
 
-**Last Updated**: November 3, 2025
+**Last Updated**: November 4, 2025
 
 ---
 
-## 🚀 Current Phase: Evidence Base Complete → Implementation Starting
+## 🎉 Current Phase: Experimentation COMPLETE → Publication Prep
 
-**Previous Phase** (Oct-Nov 2025): Systematic evidence gathering
+**Experimentation Phase** (Oct 30 - Nov 4, 2025): ✅ COMPLETE
 - DAG hardware validation (307 experiments, statistically rigorous)
-- Streaming characterization (72 experiments, 67% complete)
-- I/O overhead analysis (48 experiments)
-- **Total**: 1,100+ experiments backing biofast design
+- Streaming characterization (72 experiments, 100% complete)
+- I/O optimization (parallel bgzip + mmap, 100% complete)
+- **Total**: 1,357 experiments (40,710 measurements, N=30)
+- **Status**: All 4 democratization pillars validated
 
-**Current Phase** (Nov 3-4, 2025): Complete streaming benchmarks
-- Benchmark 1 v2: Memory footprint (RUNNING - corrected methodology)
-- Benchmark 2: Streaming overhead (COMPLETE - 83-87% with record-by-record)
-- Benchmark 3: End-to-end pipeline (PENDING)
-- **Purpose**: Validate design choices before implementation
+**Current Phase** (Nov 4, 2025): Distillation & Publication Prep
+- ✅ Artifact 1: OPTIMIZATION_RULES.md (complete, in biometal repo)
+- ⏳ Artifact 2: EXPERIMENTAL_SUMMARY.md (publication tables/stats)
+- ⏳ Artifact 3: Validation plots (publication-quality visualizations)
+- ⏳ Artifact 4: PUBLICATION_SUMMARY.md (manuscript prep)
 
-**Next Phase** (Nov 4 - Dec 20, 2025): biofast Development
+**Parallel Track** (Nov 4 - Dec 15, 2025): biometal Development
+- biometal repo created: https://github.com/shandley/biometal
 - Week 1-2: Core infrastructure (v0.1.0 - local file streaming)
 - Week 3-4: Network streaming (v0.2.0 - HTTP/SRA)
 - Week 5-6: Python + ML integration (v0.3.0 - BERT-ready)
@@ -26,10 +28,103 @@
 
 **Key Documents**:
 - **CURRENT_STATUS.md**: Current state, evidence summary
-- **BIOFAST_VISION.md**: Library design, network streaming, BERT integration
-- **ROADMAP.md**: Detailed 6-7 week development timeline
-- **NETWORK_STREAMING_VISION.md**: HTTP/SRA streaming architecture
-- **DAG_FRAMEWORK.md**: Novel testing methodology
+- **OPTIMIZATION_RULES.md**: Distilled rules for biometal (Artifact 1) ✅
+- **ROADMAP.md**: Development timeline + publication artifacts plan
+- **biometal repo**: https://github.com/shandley/biometal (separate repo)
+
+---
+
+## Publication Artifacts Plan
+
+### Purpose
+
+Create publication-ready materials from 1,357 experiments while biometal development proceeds in parallel. These artifacts serve both manuscript drafting and biometal documentation.
+
+### Artifact 1: OPTIMIZATION_RULES.md ✅ COMPLETE
+
+**Status**: Complete (Nov 4, 2025)
+**Location**: Both ASBB and biometal repos
+**Purpose**: Bridge between experimental evidence and implementation
+
+**Contents**:
+- 6 optimization rules distilled from 1,357 experiments
+- Evidence links to lab notebook entries
+- Implementation patterns with code examples
+- 590 lines, dual-purpose (publication Methods + biometal dev guide)
+
+**Serves**:
+- biometal implementation (Week 1-6 guidelines)
+- Publication Methods section (evidence-based design)
+
+### Artifact 2: EXPERIMENTAL_SUMMARY.md ⏳ PENDING
+
+**Purpose**: Statistical summary for publication manuscripts
+
+**Contents**:
+- Executive summary of all 1,357 experiments
+- Publication-quality tables (Hardware dimensions, Four pillars, Optimization rules)
+- Statistical rigor documentation (N=30, 95% CI, Cohen's d)
+- Key findings with effect sizes
+- Reproducibility information
+
+**Format**: Markdown with LaTeX-ready tables
+
+**Timeline**: Create when drafting manuscripts (Week 3-4 or later)
+
+**Serves**:
+- Paper 1: DAG Framework (BMC Bioinformatics)
+- Paper 2: biometal Library (Bioinformatics/JOSS)
+- Paper 3: Four-Pillar Democratization (GigaScience)
+
+### Artifact 3: Validation Plots ⏳ PENDING
+
+**Purpose**: Publication-quality visualizations
+
+**Plots to generate** (from existing CSV data):
+1. NEON Speedup by Operation (from Entry 020-025, DAG validation)
+2. Streaming Memory Footprint (from Entry 026, batch vs streaming)
+3. I/O Optimization Stack (from Entries 028-032, layered benefits)
+4. Block Size Impact (from Entry 027, threshold analysis)
+5. mmap Threshold Effect (from Entry 032, file size scaling)
+
+**Format**: 300 DPI PNG + vector PDF (publication-ready)
+
+**Timeline**: Create when drafting manuscripts (Week 3-4 or later)
+
+**Serves**:
+- All 3 papers (figures for Results sections)
+- biometal documentation (performance visualizations)
+
+### Artifact 4: PUBLICATION_SUMMARY.md ⏳ PENDING
+
+**Purpose**: Quick-reference for manuscript drafting
+
+**Contents**:
+- All tables from Artifact 2
+- All plot descriptions from Artifact 3
+- Key statistics for Abstracts
+- Contribution statements for each paper
+- Cross-references to lab notebook entries
+
+**Timeline**: Create when ready to draft manuscripts (Week 4+ or later)
+
+**Serves**:
+- Rapid manuscript drafting (all stats in one place)
+- Consistency across 3 papers
+
+### Implementation Strategy
+
+**Priority**: Publication artifacts are **low priority** during biometal Week 1-2 implementation.
+
+**When to create**:
+- **Not now**: Focus on biometal core features (Week 1-2)
+- **Later**: Create when drafting manuscripts (Week 3-4+ or after v1.0.0)
+- **Why**: Experimental data is stable, can generate artifacts anytime
+
+**Benefit of delay**:
+- Biometal v0.1.0-v0.3.0 provides additional validation
+- Real-world usage informs manuscript framing
+- More time = better manuscript quality
 
 ---
 
@@ -49,57 +144,60 @@
 - Field researchers (portable, low power)
 - Students (accessible hardware)
 
-**Delivery Vehicle**: **biofast** - production Rust library with Python bindings
+**Delivery Vehicle**: **biometal** - production Rust library with Python bindings
 
 ---
 
-## Current Status (November 3, 2025)
+## Current Status (November 4, 2025)
 
-### Evidence Base: COMPLETE ✅
+### Evidence Base: ✅ COMPLETE
 
-**1,127 total experiments** (N=30 repetitions each = 33,810 measurements):
+**🎉 1,357 total experiments** (N=30 repetitions each = 40,710 measurements):
 
 1. **DAG Hardware Validation**: 307 experiments (✅ COMPLETE)
    - Finding: NEON provides 16-25× speedup for element-wise operations
    - Finding: GPU/AMX/2-bit don't help (negative findings documented)
    - Publication: DAG framework paper (BMC Bioinformatics, in prep)
 
-2. **I/O Overhead**: 48 experiments (✅ COMPLETE)
-   - Finding: 92.5% I/O overhead with batch + gzip
-   - Finding: 16× compute speedup → 2.16× end-to-end
-
-3. **Streaming Characterization**: 72 experiments (⏳ 67% COMPLETE)
-   - Benchmark 1 v2: Memory footprint (RUNNING)
-   - Benchmark 2: Streaming overhead (COMPLETE - 83-87% with record-by-record)
-   - Benchmark 3: E2E pipeline (PENDING)
+2. **Streaming Characterization**: 72 experiments (✅ COMPLETE, 100%)
+   - Benchmark 1 v2: Memory footprint ✅ (99.5% reduction, constant ~5 MB)
+   - Benchmark 2: Streaming overhead ✅ (82-86% with record-by-record)
+   - Benchmark 3: E2E pipeline ✅ (I/O dominates 264-352×)
    - **Key insight**: Block-based (10K chunks) required, not record-by-record
+
+3. **I/O Optimization**: 6 experiments (✅ COMPLETE)
+   - Parallel bgzip: 6.5× speedup (CPU, production-ready)
+   - Smart mmap: 2.5× additional (≥50 MB threshold, macOS)
+   - **Combined**: 16.3× I/O speedup for large files
+   - **Decision**: Skip GPU (100% dynamic Huffman = 7-10 days)
 
 4. **Cross-platform**: 27 experiments (✅ COMPLETE)
    - Mac M4 vs AWS Graviton 3 validation
    - Portability pillar validated
 
-5. **Power consumption**: 24 experiments (✅ COMPLETE)
-   - Environmental pillar validated
+5. **DAG Statistical Rigor**: 307 experiments (✅ COMPLETE)
+   - Week 1 Day 2 validation (3 batches)
+   - N=30 statistical rigor, 95% CI, Cohen's d
 
-### Four-Pillar Status
+### Four-Pillar Status: ✅ ALL VALIDATED
 
 | Pillar | Status | Evidence |
 |--------|--------|----------|
 | 💰 Economic | ✅ Validated | 307 experiments, 16-25× NEON speedup |
-| 🌱 Environmental | ✅ Validated | ARM efficiency (portability validates this) |
+| 🌱 Environmental | ✅ Validated | ARM efficiency (cross-platform validates) |
 | 🔄 Portability | ✅ Validated | Cross-platform testing (Mac, Graviton) |
-| 📊 Data Access | ⏳ In Progress | Streaming benchmarks 67% complete |
+| 📊 Data Access | ✅ Validated | 72 streaming experiments, 99.5% memory reduction |
 
-**Target**: All 4 pillars validated by biofast v0.3.0 (Dec 13, 2025)
+**Achievement**: 🎉 All 4 pillars validated experimentally! (November 4, 2025)
 
 ### Implementation Status
 
-**biofast library**: 📋 Design complete, implementation starts Nov 4
-- Evidence-based design (1,100+ experiments)
-- Streaming architecture validated (Benchmark 1-3)
-- Block-based processing (10K chunks from Benchmark 2)
-- Network streaming design (HTTP/SRA)
-- BERT integration design (PyO3 bindings)
+**biometal library**: ✅ Repository created, ready for Week 1-2
+- Repository: https://github.com/shandley/biometal
+- Evidence-based design (1,357 experiments → 6 rules)
+- OPTIMIZATION_RULES.md (590 lines, dual-purpose)
+- Clean structure: ~2,500 lines (vs ASBB's 50k+)
+- Week 1-2: Core infrastructure (Nov 4-15, 2025)
 
 ---
 
@@ -229,26 +327,26 @@ for record in stream.records() {
 
 ---
 
-## Development Workflow (biofast Implementation)
+## Development Workflow (biometal Implementation)
 
 ### Phase: Implementation (Nov 4 - Dec 20)
 
 **Not**: More experiments (evidence base complete)
-**Now**: Building production library based on evidence
+**Now**: Building production library based on evidence in separate repository (https://github.com/shandley/biometal)
 
 ### Typical Implementation Flow
 
 **Week 1-2** (Core Infrastructure):
-1. Create `crates/biofast/` package
-2. Implement streaming infrastructure
+1. Implement streaming infrastructure in biometal repo
    - `FastqStream` with auto-compression detection
    - Block-based processing (10K default)
+   - I/O optimization stack (parallel bgzip + smart mmap)
    - Progress bars
-3. Implement 10 core operations
+2. Implement 10 core operations
    - Naive + NEON variants
    - Auto-config logic (thresholds from DAG)
-4. Build CLI tools
-5. Write documentation
+3. Build CLI tools
+4. Write documentation
 
 **Week 3-4** (Network Streaming):
 1. Implement `StreamSource` abstraction
@@ -271,7 +369,7 @@ for record in stream.records() {
 
 ### Code Review Checklist
 
-Before committing biofast code, verify:
+Before committing biometal code, verify:
 
 - [ ] Evidence-based (cite experiment/benchmark if applicable)
 - [ ] Streaming-first (constant memory)
@@ -288,7 +386,7 @@ Before committing biofast code, verify:
 ### Current Phase Focus
 
 **DO**:
-- Focus on biofast implementation (evidence → code)
+- Focus on biometal implementation (evidence → code)
 - Prioritize production quality over speed
 - Validate design choices with existing benchmarks
 - Document everything (rustdoc + examples)
@@ -445,33 +543,33 @@ for block in stream.blocks(10_000) {
 - Reproducible framework
 - Community can extend (test RPi, Ampere, etc.)
 
-### Paper 2: biofast Library (Bioinformatics or JOSS)
+### Paper 2: biometal Library (Bioinformatics or JOSS)
 
 **Status**: Design complete, implementation starting
 
 **Target**: February 2026 submission
 
 **Novel contributions**:
-1. Evidence-based design (1,100+ experiments)
+1. Evidence-based design (1,357 experiments)
 2. Streaming architecture (memory + network)
-3. BERT integration (eliminates preprocessing bottleneck)
+3. I/O optimization stack (16.3× speedup for large files)
 4. Production implementation (not prototype)
 
 **Framing**: Democratization tool, not just performance
 
 **Impact statement**:
-> "biofast enables 5TB genomic analysis on $1,400 laptops without downloading data, eliminating economic, storage, and accessibility barriers. Validated by 1,100+ experiments across ARM platforms."
+> "biometal enables 5TB genomic analysis on $1,400 laptops without downloading data, eliminating economic, storage, and accessibility barriers. Validated by 1,357 experiments across ARM platforms."
 
 ---
 
 ## References
 
 **Current Status**: `CURRENT_STATUS.md` (always up-to-date)
-**Library Design**: `BIOFAST_VISION.md`
+**Optimization Rules**: `OPTIMIZATION_RULES.md` (distilled from 1,357 experiments)
 **Development Timeline**: `ROADMAP.md`
-**Network Streaming**: `NETWORK_STREAMING_VISION.md`
 **Testing Methodology**: `DAG_FRAMEWORK.md`
 **Lab Notebook**: `lab-notebook/INDEX.md`
+**biometal Repository**: https://github.com/shandley/biometal
 
 ---
 
@@ -480,53 +578,51 @@ for block in stream.blocks(10_000) {
 ### Development
 
 ```bash
-# Build biofast library
-cargo build --release -p biofast
-
-# Run tests
-cargo test -p biofast
-
-# Run CLI tool
-cargo run --release --bin biofast -- gc-content data.fq.gz
-
-# Build Python bindings
-cd biofast-py && maturin develop
-
-# Run streaming benchmarks
+# ASBB repository (experimental validation)
+cargo run --release --bin asbb-dag-traversal
 cargo run --release --bin streaming-memory-benchmark-v2
 cargo run --release --bin streaming-overhead-benchmark
 cargo run --release --bin streaming-e2e-benchmark
+
+# biometal repository (production library)
+cd ../biometal
+cargo build --release
+cargo test
+cargo run --release --bin biometal -- gc-content data.fq.gz
 ```
 
 ### Documentation
 
 ```bash
-# Generate rustdoc
-cargo doc --open -p biofast
+# Generate rustdoc (in biometal repo)
+cd ../biometal
+cargo doc --open
 
 # Check documentation coverage
-cargo +nightly rustdoc -p biofast -- -Z unstable-options --show-coverage
+cargo +nightly rustdoc -- -Z unstable-options --show-coverage
 ```
 
 ### Validation
 
 ```bash
-# Memory leak testing
-valgrind --leak-check=full cargo run --release --bin biofast -- gc-content large.fq.gz
+# Memory leak testing (in biometal repo)
+cd ../biometal
+valgrind --leak-check=full cargo run --release --bin biometal -- gc-content large.fq.gz
 
 # Cross-platform testing (Graviton)
-scp -r biofast/ ec2-graviton:~/
-ssh ec2-graviton "cd biofast && cargo test"
+scp -r ../biometal/ ec2-graviton:~/
+ssh ec2-graviton "cd biometal && cargo test"
 ```
 
 ---
 
-**Last Updated**: November 3, 2025 (20:00 PST)
-**Current Phase**: Streaming benchmarks (67% complete)
-**Next Milestone**: biofast v0.1.0 development starts (Nov 4)
+**Last Updated**: November 4, 2025
+**Current Phase**: Experimentation COMPLETE → biometal Development Starting
+**Next Milestone**: biometal v0.1.0 (Nov 15, 2025)
 **Owner**: Scott Handley + Claude
 **Timeline**: 6-7 weeks to v1.0.0 (quality over deadline)
 
-**For implementation guidance**: See BIOFAST_VISION.md and ROADMAP.md
+**For implementation**: Work in biometal repository (https://github.com/shandley/biometal)
+**For optimization rules**: See OPTIMIZATION_RULES.md (Artifact 1)
+**For development timeline**: See ROADMAP.md
 **For experimental background**: See CURRENT_STATUS.md
-**For network streaming**: See NETWORK_STREAMING_VISION.md (to be created)
