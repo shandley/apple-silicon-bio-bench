@@ -29,6 +29,7 @@ pub mod gc_content;
 pub mod hamming_distance;
 pub mod kmer_counting;
 pub mod kmer_extraction;
+pub mod kmer_2bit;
 pub mod length_filter;
 pub mod minimizers;
 pub mod minhash_sketching;

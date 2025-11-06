@@ -1782,9 +1782,59 @@ results/
 
 ---
 
+#### Entry 035: K-mer Non-Traditional Optimization (2-bit + ntHash) ✅
+**ID**: `20251106-035-EXPERIMENT-kmer-2bit-nthash.md`
+**Type**: EXPERIMENT
+**Status**: COMPLETE (Negative Finding)
+**Phase**: Evidence Base - K-mer Operations (Non-Traditional Approaches)
+**Operations**: kmer_extraction variants (2-bit encoding, ntHash, NEON)
+**Duration**: 8 hours (same-day pilot)
+
+**Experimental Design**:
+- Variants: 4 (baseline ASCII+FNV-1a, 2-bit+Wang, ntHash scalar, ntHash NEON)
+- K-mer sizes: 2 (k=15, k=21)
+- Scales: 2 (Small 10K, Large 100K)
+- Total runs: 16 configurations × N=3 = **48 measurements**
+
+**Objective**: Test non-traditional approaches suggested by literature after Entry 034 found minimal Apple Silicon benefit. Hypothesis: 2-bit native encoding + ntHash rolling hash might achieve ≥5× speedup.
+
+**Research Questions**:
+1. Does 2-bit native encoding improve k-mer hashing? (Literature: "vastly better than string")
+2. Does ntHash outperform FNV-1a? (Literature: "best algorithm for k-mers")
+3. Can NEON vectorize ntHash rolling updates? (Expected: 8-15× with parallelism)
+
+**Success Criteria**:
+- ≥5× speedup → Revise Entry 034, implement in biometal
+- 2-5× speedup → Moderate finding, consider optional implementation
+- <2× speedup → Confirms Entry 034, proceed with scalar
+
+**Results**: All non-traditional approaches SLOWER than baseline
+- 2-bit + Wang hash: **0.19-0.24×** (4-5× SLOWER due to conversion overhead!)
+- ntHash scalar: 0.67-0.94× (complex operations don't help)
+- ntHash NEON: **0.88-1.19×** (best result, still below threshold)
+
+**Key Finding**: Non-traditional approaches (2-bit encoding, ntHash rolling hash, NEON vectorization) do NOT improve k-mer performance. Literature predictions failed due to:
+1. **Conversion overhead**: ASCII → 2-bit costs more than hash computation
+2. **Sequence length**: Rolling advantage doesn't materialize for short NGS reads (150 bp)
+3. **Algorithm complexity**: ntHash (rotate+XOR+XOR) slower than simple FNV-1a (XOR+multiply)
+4. **NEON limitations**: Rotate emulation + data dependencies prevent parallelism
+
+**Conclusion**: **VALIDATES Entry 034** - K-mer operations are data-structure-bound, even sophisticated algorithmic approaches can't overcome this. Simple FNV-1a on ASCII is faster than "optimized" alternatives.
+
+**biometal Impact**: NO CHANGE - Implement as planned (scalar with optional parallel for extraction)
+
+**Publication Value**: HIGH - Demonstrates DAG thoroughness, validates empirical testing over theory, shows negative findings prevent wasted optimization effort
+
+**Timeline**: Day 1 (Nov 6, same day) - 8 hours (implementation + benchmarking + analysis)
+
+**References**: Entry 034 (validates), Entry 010 (2-bit encoding precedent)
+**Updates**: None (confirms existing guidance)
+
+---
+
 **Status**: Lab notebook current through November 6, 2025 ✅
-**Total Entries**: 34 (Entry 034: K-mer Operations - COMPLETE ✅)
-**Total Experiments**: 1,357+ (1,285 DAG + 72 streaming + 6 I/O + 18 k-mer pilot)
+**Total Entries**: 35 (Entry 035: K-mer Non-Traditional - COMPLETE ✅, Negative Finding)
+**Total Experiments**: 1,369 (1,285 DAG + 72 streaming + 6 I/O + 18 k-mer pilot Entry 034 + 48 k-mer non-trad Entry 035)
 **Streaming Validation**: ✅ **COMPLETE** - 72 experiments (2,160 measurements with N=30)
 **I/O Optimization**: ✅ **COMPLETE** - CPU parallel (6.5×) + mmap (2.5×) = 16.3× total
 **DAG Framework**: ✅ **WEEK 1 DAY 2 COMPLETE** - All 3 batches finished (307 experiments)
