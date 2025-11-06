@@ -30,6 +30,7 @@ pub mod hamming_distance;
 pub mod kmer_counting;
 pub mod kmer_extraction;
 pub mod length_filter;
+pub mod minimizers;
 pub mod minhash_sketching;
 pub mod n_content;
 pub mod quality_aggregation;

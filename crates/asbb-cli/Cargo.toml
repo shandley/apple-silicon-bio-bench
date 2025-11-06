@@ -178,3 +178,7 @@ path = "src/bin/mmap_io_benchmark.rs"
 [[bin]]
 name = "mmap-scale-benchmark"
 path = "src/bin/mmap_scale_benchmark.rs"
+
+[[bin]]
+name = "kmer-pilot"
+path = "src/bin/kmer-pilot.rs"
