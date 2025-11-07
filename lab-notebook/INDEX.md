@@ -1832,9 +1832,73 @@ results/
 
 ---
 
+#### Entry 036: Minimizer Extraction Baseline (Pre-ntHash) ✅
+**ID**: `20251106-036-EXPERIMENT-minimizer-baseline.md`
+**Type**: EXPERIMENT
+**Status**: COMPLETE
+**Phase**: Evidence Base - Minimizer Extraction Baseline
+**Operations**: extract_minimizers (FNV-1a + linear scan baseline)
+**Duration**: 1 day (accelerated from 2-day plan)
+
+**Experimental Design**:
+- Configurations: 16 (k ∈ {21, 31}, w ∈ {11, 19}, lengths ∈ {100bp, 1K, 10K, 100K})
+- Repetitions: N=100 per configuration (criterion default)
+- Total measurements: **1,600** (16 configs × 100 samples)
+- Tool: Criterion 0.5.1 (statistical rigor, 95% CI)
+
+**Objective**: Establish rigorous performance baseline for minimizer extraction to quantify improvements from ntHash + two stacks integration (simd-minimizers-analysis experiment GO decision).
+
+**Research Questions**:
+1. What is the current minimizer extraction throughput? (Entry 034 estimated ~50-100 Mbp/s)
+2. How does performance scale with sequence length? (Test: 100bp to 100Kbp)
+3. What is the performance variability? (Establish 95% CI for comparison)
+4. Where is the bottleneck? (FNV-1a hash vs sliding window vs deduplication)
+
+**Success Criteria**:
+- ✅ N=100 repetitions for statistical rigor (95% CI)
+- ✅ Multiple scales to validate scaling behavior
+- ✅ Low variability (CV < 5%) for reliable comparison
+- ✅ Complete baseline for Entry 036-B (post-implementation) comparison
+
+**Results**: Baseline is **221× slower than SimdMinimizers**!
+- **Throughput range**: 1.7 - 5.5 Mbp/s (mean: 3.1 Mbp/s)
+- **Variability**: Excellent (CV: 0.6-1.6%, mean: 1.1%)
+- **Scaling**: Stabilizes at ~3.7 Mbp/s for sequences ≥10Kbp
+- **SimdMinimizers**: 820.62 Mbp/s (Day 2 benchmark)
+- **Speedup ratio**: 820.62 / 3.7 = **221× faster!**
+
+**Critical Finding**: **Entry 034 overestimated baseline by 10-20×**
+- Entry 034 (pilot, N=3): ~50-100 Mbp/s estimated
+- Entry 036 (rigorous, N=100): 1.7-5.5 Mbp/s measured
+- **Lesson**: Always establish rigorous baselines before claiming speedups
+
+**Revised GO Decision Assessment**:
+- **Original projection**: 4-8× speedup with block-based streaming
+- **Actual potential**: **100-200× speedup** (12-25× larger than estimated!)
+- **Conservative target**: ≥50× speedup (185 Mbp/s)
+- **Realistic target**: ≥100× speedup (370 Mbp/s) ← Primary
+- **Exceptional target**: ≥150× speedup (555 Mbp/s)
+
+**Strategic Implications**:
+1. **Opportunity is far larger than expected** - Block-based trade-off (25% speed for 99.99% memory) is highly favorable
+2. **Evidence validates GO decision** - Even 50% of full SIMD (410 Mbp/s) provides 110× improvement
+3. **Publication-quality validation** - Entry 036-B will show dramatic, unambiguous improvement (Cohen's d >> 2.0)
+
+**biometal Impact**: Phase 1 implementation can proceed with **high confidence** and clear success criteria (≥100× realistic target)
+
+**Timeline**: Complete in 1 day (accelerated from 2-day plan)
+
+**References**: Entry 034 (k-mer pilot), Entry 035 (negative finding), simd-minimizers-analysis (GO decision)
+**Updates**: Revised speedup projections (100-200× vs original 4-8×)
+
+**Next Steps**: Begin Phase 1 implementation (ntHash + two stacks ports), followed by Entry 036-B validation
+
+---
+
 **Status**: Lab notebook current through November 6, 2025 ✅
-**Total Entries**: 35 (Entry 035: K-mer Non-Traditional - COMPLETE ✅, Negative Finding)
-**Total Experiments**: 1,369 (1,285 DAG + 72 streaming + 6 I/O + 18 k-mer pilot Entry 034 + 48 k-mer non-trad Entry 035)
+**Total Entries**: 36 (Entry 036: Minimizer Baseline - COMPLETE ✅, Rigorous Pre-Optimization Measurement)
+**Total Experiments**: 1,385 (1,285 DAG + 72 streaming + 6 I/O + 18 k-mer pilot Entry 034 + 48 k-mer non-trad Entry 035 + 16 minimizer baseline Entry 036)
+**Total Measurements**: 42,290 (40,710 previous + 1,600 Entry 036 with N=100)
 **Streaming Validation**: ✅ **COMPLETE** - 72 experiments (2,160 measurements with N=30)
 **I/O Optimization**: ✅ **COMPLETE** - CPU parallel (6.5×) + mmap (2.5×) = 16.3× total
 **DAG Framework**: ✅ **WEEK 1 DAY 2 COMPLETE** - All 3 batches finished (307 experiments)
@@ -1843,4 +1907,4 @@ results/
 **Democratization Pillars**: ✅ **4/4 VALIDATED** (Economic, Environmental, Portability, Data Access)
 **Phase 1 Status**: ✅ **COMPLETE AND PUBLICATION-READY**
 **Experimentation Phase**: ✅ **COMPLETE** (Nov 4, 2025)
-**Next Phase**: biofast library implementation (Nov 4 - Dec 15, 2025)
+**Next Phase**: biometal v1.3.0 implementation (ntHash + two stacks integration)
